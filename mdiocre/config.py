@@ -87,13 +87,18 @@ class Config:
                          "use-templates",
                          "source-folder",
                          "build-folder",
-                         "template-folder",]
+                         "template-folder"]
             try:
-                for option in reqd_opts:
-                    assert (config.get("config",option) != ""), "Option \'"+option+"\' is empty!"
-                    cfg_array = config.get("config",option).replace(" ","").split(",")
+            # Required keys
+                for option in config.options("config"):
+                    if option in reqd_opts:
+                        assert (config.get("config",option) != ""), "Option \'"+option+"\' is empty!"
+                    if option[-7:] == "-folder":
+                        cfg_array = [config.get("config",option)]
+                    else:
+                        cfg_array = config.get("config",option).replace(" ","").split(",")
                     conf_dict[option] = cfg_array
-                if "vars" in iter(config.keys()):
+                if "vars" in config.sections():
                     for option in config.options("vars"):
                         conf_dict["vars"][option] = config.get("vars",option)
             except cp.NoSectionError as e:

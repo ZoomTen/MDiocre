@@ -7,11 +7,39 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 import mdiocre
 import unittest
+import mock_log
 
 class TestConfig(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
         print("\nRunning mdiocre.Config test!")
+        with open("config.test.ini", "w") as c:
+            c.write("""[config]
+modules         = root, blog, tutorial, page, art
+use-templates   = main, blog, tutorial, page, art
+no-index        = page, art
+source-folder   = Pages/_src
+build-folder    = My Pages/_html
+template-folder = ShortPages/_templates
+
+[vars]
+site-name       = My Homepage
+email-addr      = bobx.x@alicex.x.comx
+hello           = Hello World!""")
+        print("config.test.ini has been created in the test directory.")
+        with open("config.invalid.ini", "w") as c:
+            c.write("""[config]
+modules         = 
+use-templates   = """)
+        print("config.invalid.ini has been created in the test directory.")
+    
+    @classmethod
+    def tearDownClass(TestConfig):
+        import os
+        os.remove("config.test.ini")
+        print("Removing config.test.ini.")
+        os.remove("config.invalid.ini")
+        print("Removing config.invalid.ini.")
     
     def setUp(self):
         pass
@@ -20,9 +48,34 @@ class TestConfig(unittest.TestCase):
     def test_load_config(self):
         pass
     
-    @unittest.skip("todo")
-    def test_load_config_file(self):
-        pass
+    def test_load_config_file_okay(self):
+        c = mdiocre.Config(filename="config.test.ini",logger=mock_log.Debug(False))
+        test = {
+               "vars": {"site-name": "My Homepage",
+                        "email-addr": "bobx.x@alicex.x.comx",
+                        "hello": "Hello World!"
+                       },
+               "modules": ["root","blog","tutorial","page","art"],
+               "use-templates": ["main", "blog", "tutorial", "page", "art"],
+               "no-index": ["page","art"],
+               "source-folder": ["Pages/_src"],
+               "build-folder": ["My Pages/_html"],
+               "template-folder": ["ShortPages/_templates"],
+               }
+        
+        for key in test.keys():
+            with self.subTest(key=key):
+                if key == "use-templates":
+                    pass
+                else:
+                    self.assertEqual(c.config[key], test[key])
+        
+        #print("\n c.config contains:\n", c.config)
+        #print("\n test contains:\n", test)
+    
+    def test_load_config_file_not_okay(self):
+        with self.assertRaises(AssertionError):
+            mdiocre.Config(filename="config.invalid.ini",logger=mock_log.Debug(False))
 
 class TestWizard(unittest.TestCase):
     @classmethod
@@ -55,7 +108,7 @@ class TestUtils(unittest.TestCase):
                     "foo": "bar",
                     "bar": "foo"
                     }
-        self.utils = mdiocre.Utils(logger=mdiocre.Debug(False))
+        self.utils = mdiocre.Utils(logger=mock_log.Debug(False))
     
     @unittest.skip("todo")
     def test_file_exists(self):

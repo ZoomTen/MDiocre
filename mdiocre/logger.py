@@ -78,5 +78,4 @@ class Debug:
         s = "  WARNING: "+string
         self.logger.warning(s)
         #print(s)
-        if self.debug:
-            print(Fore.YELLOW+s+Style.RESET_ALL)
+        print(Fore.YELLOW+s+Style.RESET_ALL)

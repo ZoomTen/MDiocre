@@ -148,6 +148,8 @@ class Utils:
 
         if type(file_name) is str:
             filename_warn = "In file: "+file_name+" - "
+        else:
+            filename_warn = ""
 
         # i can't figure out how to tokenize so oh
         if set_var:

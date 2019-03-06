@@ -13,33 +13,10 @@ class TestConfig(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
         print("\nRunning mdiocre.Config test!")
-        with open("config.test.ini", "w") as c:
-            c.write("""[config]
-modules         = root, blog, tutorial, page, art
-use-templates   = main, blog, tutorial, page, art
-no-index        = page, art
-source-folder   = Pages/_src
-build-folder    = My Pages/_html
-template-folder = ShortPages/_templates
-
-[vars]
-site-name       = My Homepage
-email-addr      = bobx.x@alicex.x.comx
-hello           = Hello World!""")
-        print("config.test.ini has been created in the test directory.")
-        with open("config.invalid.ini", "w") as c:
-            c.write("""[config]
-modules         = 
-use-templates   = """)
-        print("config.invalid.ini has been created in the test directory.")
-    
+        
     @classmethod
     def tearDownClass(TestConfig):
-        import os
-        os.remove("config.test.ini")
-        print("Removing config.test.ini.")
-        os.remove("config.invalid.ini")
-        print("Removing config.invalid.ini.")
+        pass
     
     def setUp(self):
         pass
@@ -49,34 +26,42 @@ use-templates   = """)
         pass
     
     def test_load_config_file_okay(self):
-        c = mdiocre.Config(filename="config.test.ini",logger=mock_log.Debug(False))
-        test = {
-               "vars": {"site-name": "My Homepage",
-                        "email-addr": "bobx.x@alicex.x.comx",
-                        "hello": "Hello World!"
-                       },
-               "modules": ["root","blog","tutorial","page","art"],
-               "use-templates": ["main", "blog", "tutorial", "page", "art"],
-               "no-index": ["page","art"],
-               "source-folder": ["Pages/_src"],
-               "build-folder": ["My Pages/_html"],
-               "template-folder": ["ShortPages/_templates"],
-               }
-        
-        for key in test.keys():
-            with self.subTest(key=key):
-                if key == "use-templates":
-                    pass
-                else:
-                    self.assertEqual(c.config[key], test[key])
-        
-        #print("\n c.config contains:\n", c.config)
-        #print("\n test contains:\n", test)
+        import os
+        conf_file = "cfg_test/config.ini"
+        if os.path.exists(conf_file):
+            c = mdiocre.Config(filename="cfg_test/config.ini",logger=mock_log.Debug(False))
+            test = {
+                   "vars": {"site-name": "My Homepage",
+                            "email-addr": "bobx.x@alicex.x.comx",
+                            "hello": "Hello World!"
+                           },
+                   "modules": ["root","blog","tutorial","page","art"],
+                   "use-templates": ["main", "blog", "tutorial", "page", "art"],
+                   "no-index": ["page","art"],
+                   "source-folder": "Pages/_src",
+                   "build-folder": "My Pages/_html",
+                   "template-folder": "ShortPages/_templates",
+                   }
+            self.assertCountEqual(c.config, test)
+            #print("\n c.config contains:\n", c.config)
+            #print("\n test contains:\n", test)
+        else:
+            self.fail("required file "+conf_file+" does not exist")
     
     def test_load_config_file_not_okay(self):
-        with self.assertRaises(AssertionError):
-            mdiocre.Config(filename="config.invalid.ini",logger=mock_log.Debug(False))
-
+    # this is not a valid config
+        import os
+        conf_file = "cfg_test/config.invalid.ini"
+        if os.path.exists(conf_file):
+            with self.assertRaises(mdiocre.ConfigInvalid):
+                mdiocre.Config(filename="config.invalid.ini",logger=mock_log.Debug(False))
+        else:
+            self.fail("required file "+conf_file+" does not exist")
+    
+    def test_load_config_file_not_existent(self):
+    # no such file
+        with self.assertRaises(mdiocre.ConfigInvalid):
+            mdiocre.Config(filename="qwertyuiopasdfghjklzxcvbnmqwertyuiop",logger=mock_log.Debug(False))
 class TestWizard(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
@@ -164,7 +149,7 @@ class TestUtils(unittest.TestCase):
         
     
     def test_variable_set_concat_var_str_commaized(self):
-        text = "Concatenating a variable and a string<!--var2=test,\" set\, go\"-->"
+        text = "Concatenating a variable and a string<!--var2=test,\" set, go\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set, go")

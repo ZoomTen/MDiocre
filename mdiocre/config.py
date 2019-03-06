@@ -89,12 +89,15 @@ class Config:
                          "build-folder",
                          "template-folder"]
             try:
-            # Required keys
+            # Test required keys
+                for require in reqd_opts:
+                    config.get("config",require)
+            # Get config
                 for option in config.options("config"):
                     if option in reqd_opts:
                         assert (config.get("config",option) != ""), "Option \'"+option+"\' is empty!"
                     if option[-7:] == "-folder":
-                        cfg_array = [config.get("config",option)]
+                        cfg_array = config.get("config",option)
                     else:
                         cfg_array = config.get("config",option).replace(" ","").split(",")
                     conf_dict[option] = cfg_array
@@ -103,6 +106,9 @@ class Config:
                         conf_dict["vars"][option] = config.get("vars",option)
             except cp.NoSectionError as e:
                 self.log.error("Cannot find section '"+str(e.args[0])+"' in the configuration file!")
+                return
+            except cp.NoOptionError as e:
+                self.log.error("Cannot find option '"+str(e.args[0])+"' in the configuration file!")
                 return
             else:
                 self.log.header("Successfully read config file!", False)

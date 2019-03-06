@@ -109,9 +109,9 @@ class Wizard:
         modules_list        = cfg["modules"]
         template_list       = cfg["use-templates"]
         vars_list           = cfg["vars"]
-        source_base         = osp.realpath(cfg["source-folder"][0])
-        build_base          = osp.realpath(cfg["build-folder"][0])
-        template_base       = osp.realpath(cfg["template-folder"][0])
+        source_base         = osp.realpath(cfg["source-folder"])
+        build_base          = osp.realpath(cfg["build-folder"])
+        template_base       = osp.realpath(cfg["template-folder"])
 
         # (Optional)
         index_ignore_list   = ["root"]
@@ -391,7 +391,7 @@ class Wizard:
         self.log.header("Using configuration file: "+cfg_name,False)
 
         modules_list = cfg["modules"]
-        build_base   = osp.realpath(cfg["build-folder"][0])
+        build_base   = osp.realpath(cfg["build-folder"])
 
         if exclude:
             self.log.header("Excluded modules: "+str(exclude),False)
@@ -414,7 +414,7 @@ class Wizard:
                         self.log.log("Removing "+mod_dir)
                         shutil.rmtree(mod_dir, ignore_errors=True)
                 except FileNotFound:
-                    self.log.warning(osp.join(cfg["build-folder"][0],module)+" doesn't exist; no need to clean.")
+                    self.log.warning(osp.join(cfg["build-folder"],module)+" doesn't exist; no need to clean.")
             else:
                 from glob import glob
                 from os import remove

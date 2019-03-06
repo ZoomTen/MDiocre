@@ -115,15 +115,15 @@ class TestWizard(unittest.TestCase):
         print("\nRunning mdiocre.Wizard test!", file=sys.stderr)
 
     def setUp(self):
-        pass
+        self.config = mdiocre.Config(filename="wizard/config.ini",logger=mock_log.Debug(False))
+        self.wizard = mdiocre.Wizard(config=self.config)
 
     @unittest.skip("todo")
     def test_make_page(self):
         pass
 
-    @unittest.skip("todo")
     def test_make_site(self):
-        pass
+        self.wizard.build_site(index_html=True, use_prefix=False)
 
     @unittest.skip("todo")
     def test_clean_site(self):

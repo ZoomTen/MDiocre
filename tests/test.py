@@ -9,22 +9,23 @@ import mdiocre
 import unittest
 import mock_log
 
+
 class TestConfig(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
-        print("\nRunning mdiocre.Config test!")
-        
+        print("\nRunning mdiocre.Config test!", file=sys.stderr)
+
     @classmethod
     def tearDownClass(TestConfig):
         pass
-    
+
     def setUp(self):
         pass
-    
+
     @unittest.skip("todo")
     def test_load_config(self):
         pass
-    
+
     def test_load_config_file_okay(self):
         import os
         conf_file = "cfg_test/config.ini"
@@ -47,7 +48,7 @@ class TestConfig(unittest.TestCase):
             #print("\n test contains:\n", test)
         else:
             self.fail("required file "+conf_file+" does not exist")
-    
+
     def test_load_config_file_not_okay(self):
     # this is not a valid config
         import os
@@ -57,7 +58,7 @@ class TestConfig(unittest.TestCase):
                 mdiocre.Config(filename="config.invalid.ini",logger=mock_log.Debug(False))
         else:
             self.fail("required file "+conf_file+" does not exist")
-    
+
     def test_load_config_file_not_existent(self):
     # no such file
         with self.assertRaises(mdiocre.ConfigInvalid):
@@ -65,19 +66,19 @@ class TestConfig(unittest.TestCase):
 class TestWizard(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
-        print("\nRunning mdiocre.Wizard test!")
-    
+        print("\nRunning mdiocre.Wizard test!", file=sys.stderr)
+
     def setUp(self):
         pass
-    
+
     @unittest.skip("todo")
     def test_make_page(self):
         pass
-    
+
     @unittest.skip("todo")
     def test_make_site(self):
         pass
-    
+
     @unittest.skip("todo")
     def test_clean_site(self):
         pass
@@ -85,8 +86,8 @@ class TestWizard(unittest.TestCase):
 class TestUtils(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
-        print("\nRunning mdiocre.Utils test!")
-    
+        print("\nRunning mdiocre.Utils test!", file=sys.stderr)
+
     def setUp(self):
         self.vars = {
                     "test":"abc",
@@ -94,36 +95,12 @@ class TestUtils(unittest.TestCase):
                     "bar": "foo"
                     }
         self.utils = mdiocre.Utils(logger=mock_log.Debug(False))
-    
-    @unittest.skip("todo")
-    def test_file_exists(self):
-        pass
-    
-    @unittest.skip("todo")
-    def test_file_does_not_exist_create(self):
-        pass
-    
-    @unittest.skip("todo")
-    def test_file_does_not_exist_nocreate(self):
-        pass
-    
-    @unittest.skip("todo")
-    def test_directory_exists(self):
-        pass
-    
-    @unittest.skip("todo")
-    def test_directory_does_not_exist_create(self):
-        pass
-    
-    @unittest.skip("todo")
-    def test_directory_does_not_exist_nocreate(self):
-        pass
-        
+
     def test_variable_put_single(self):
         text = "Hello from <!--var:test--> world"
         proc = self.utils.process_vars(text, var_list=self.vars)
         self.assertEqual(proc, "Hello from abc world")
-    
+
     def test_variable_put_multiple(self):
         text = "<!--var:test-->ing... <!--var:bar--><!--var:foo--> is <!--var:foo--> <!--var:bar-->"
         proc = self.utils.process_vars(text, var_list=self.vars)
@@ -140,26 +117,26 @@ class TestUtils(unittest.TestCase):
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Directly assigning a variable to another")
         self.assertEqual(self.vars["var3"], "abc")
-        
+
     def test_variable_set_concat_var_str(self):
         text = "Concatenating a variable and a string<!--var2=test,\" set\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set")
-        
-    
+
+
     def test_variable_set_concat_var_str_commaized(self):
         text = "Concatenating a variable and a string<!--var2=test,\" set, go\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set, go")
-    
+
     def test_variable_set_concat_vars_spaced(self):
         text = "Concatenating two variables<!--var2=test, test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating two variables")
         self.assertEqual(self.vars["var2"], "abc abc")
-    
+
     def test_variable_set_concat_vars_unspaced(self):
         text = "Concatenating two variables<!--var2=test,test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
@@ -168,5 +145,5 @@ class TestUtils(unittest.TestCase):
 
 
 if __name__ == "__main__":
-   print("\n\nSTARTING UNIT TEST\n")
+   print("\n\nSTARTING UNIT TEST\n", file=sys.stderr)
    unittest.main(verbosity=2)

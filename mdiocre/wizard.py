@@ -34,6 +34,20 @@ class Wizard:
            raise ConfigInvalid("Invalid configuration type!")
         self.tools = Utils(logger=logger)
 
+    def build_index(self, config, folder_base=None):
+        """
+        Todo:
+           Make this function. Move
+           the index generation part of
+           :py:func:`build_site` here
+        """
+        if type(folder_base) != str:
+            self.log.error("No base folder specified")
+        if config == None:
+           config = self.config
+        if type(config) is not Config:
+           raise ConfigInvalid("No configuration to use!")
+
     def build_page(self, config):
         """
         Todo:
@@ -204,7 +218,7 @@ class Wizard:
                                 osp.join(osp.basename(walk[0]).replace(module,""),name))
             else:
                 md_list = glob(source_dir+"/*.md")+glob(source_dir+"/*.MD")
-            
+
             # uhh wtf
             if index_html or move_html:
                 #if module != "root":
@@ -319,10 +333,10 @@ class Wizard:
                 # init
                 if module == "root":
                     i = osp.basename(i)
-                    
+
                 vars_list["content"],vars_list["title"],vars_list["date"] = "","",""
                 name = i.replace(".md",".html")
-                
+
                 # template settings
                 if len(template_list) > 1:
                     using_template = modules_list.index(module)
@@ -331,11 +345,12 @@ class Wizard:
 
                 # build pages
                 self.log.log("Building "+name+" with template "+template_list[using_template])
-                
-                document = self.tools.convert_markdown_to_content(
-                            open(osp.join(source_dir,i),"r").read(),
-                            var_list=vars_list,
-                            file_name=i)
+
+                with open(osp.join(source_dir,i),"r") as doc:
+                    document = self.tools.convert_markdown_to_content(
+                               doc.read(),
+                               var_list=vars_list,
+                               file_name=i)
                 vars_list["content"] = document
                 cur_template = osp.join(template_base, template_list[using_template]+".html")
                 with open(cur_template,"r") as x:
@@ -350,7 +365,7 @@ class Wizard:
             if move_html:
                 self.log.name("Copying html files.")
                 if (len(ht_list) > 0):
-                    
+
                     for i in ht_list:
                         basename = osp.basename(i)
                         ofile    = osp.join(build_dir, basename)
@@ -358,7 +373,7 @@ class Wizard:
                         shutil.copyfile(i, ofile)
                 else:
                     self.log.log("No html files to copy.")
-                
+
         self.log.header("Build done!",False)
 
     def clean_site(self, config=None, exclude=None):

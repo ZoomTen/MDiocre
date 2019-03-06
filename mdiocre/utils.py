@@ -169,21 +169,25 @@ class Utils:
             final += (text[cursor:start])
 
             if set_var:
-                    var_name, value = match.split("=")
+                    var_name, value = match.split("=", 1)
+                    var_name = var_name.strip()             # delete begin and end spaces
+                    value = value.strip()
                     # Assign quoted strings
                     if validate_quotes(value):
-                        var_list[var_name] = value[1:-1].strip()
-
+                        var_list[var_name] = value[1:-1]
                     # Assign variables and operations
                     else:
-                        if len(value.split(",")) > 1:   # concat operation
+                        if len(re.split(r',(?!.*")|,(?=\s*")',value)) > 1: # concat operation
                             o = ""
-                            for x in value.split(","):
-                                try:
-                                    o += var_list[x]
-                                except KeyError:
-                                    o += x  # assume string...
-                                    self.db.warning(filename_warn+"Variable '"+x+"' does not exist, assuming it's a string...")
+                            for x in re.split(r',(?!.*")|,(?=\s*")',value):
+                                if validate_quotes(x.strip()):
+                                    o += x.strip()[1:-1]
+                                else:
+                                    try:
+                                        o += var_list[x.strip()]
+                                    except KeyError:
+                                        o += x  # assume string...
+                                        self.db.warning(filename_warn+"Variable '"+x+"' does not exist, assuming it's a string...")
                             var_list[var_name] = o
                             self.db.log(filename_warn+"Assigned "+var_name+" to "+o+".")
                         else:                       # simple assign operation

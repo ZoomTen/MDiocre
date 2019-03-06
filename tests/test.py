@@ -22,9 +22,50 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         pass
 
-    @unittest.skip("todo")
-    def test_load_config(self):
-        pass
+    def test_load_config_okay(self):
+        test = {
+                   "vars": {"site-name": "My Homepage",
+                            "email-addr": "bobx.x@alicex.x.comx",
+                            "hello": "Hello World!"
+                           },
+                   "modules": ["root","blog","tutorial","page","art"],
+                   "use-templates": ["main", "blog", "tutorial", "page", "art"],
+                   "no-index": ["page","art"],
+                   "source-folder": "Pages/_src",
+                   "build-folder": "My Pages/_html",
+                   "template-folder": "ShortPages/_templates",
+                   }
+        c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
+
+    def test_load_config_invalid_var_name(self):
+        test = {
+                   "vars": {"SiTeNaMe": "My Homepage",
+                            "!!!HellO": "bobx.x@alicex.x.comx",
+                            "w0RDS": "Hello World!"
+                           },
+                   "modules": ["root","blog","tutorial","page","art"],
+                   "use-templates": ["main", "blog", "tutorial", "page", "art"],
+                   "no-index": ["page","art"],
+                   "source-folder": "Pages/_src",
+                   "build-folder": "My Pages/_html",
+                   "template-folder": "ShortPages/_templates",
+                   }
+        with self.assertRaises(mdiocre.InvalidVarName):
+            c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
+
+    def test_load_config_not_okay(self):
+        """
+        vars and source folder keys missing
+        """
+        test = {
+                   "modules": ["root","blog","tutorial","page","art"],
+                   "use-templates": ["main", "blog", "tutorial", "page", "art"],
+                   "no-index": ["page","art"],
+                   "build-folder": "My Pages/_html",
+                   "template-folder": "ShortPages/_templates",
+                   }
+        with self.assertRaises(mdiocre.ConfigInvalid):
+            c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
 
     def test_load_config_file_okay(self):
         import os
@@ -61,8 +102,13 @@ class TestConfig(unittest.TestCase):
 
     def test_load_config_file_not_existent(self):
     # no such file
+        from random import random
+        random_file_name = ""
+        for i in range(32):
+            random_file_name += chr(97+int(random()*26))
+        print("using random file name: "+random_file_name, file=sys.stderr)
         with self.assertRaises(mdiocre.ConfigInvalid):
-            mdiocre.Config(filename="qwertyuiopasdfghjklzxcvbnmqwertyuiop",logger=mock_log.Debug(False))
+            mdiocre.Config(filename=random_file_name,logger=mock_log.Debug(False))
 class TestWizard(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
@@ -124,15 +170,26 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set")
 
-
     def test_variable_set_concat_var_str_commaized(self):
         text = "Concatenating a variable and a string<!--var2=test,\" set, go\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set, go")
 
+    def test_variable_set_concat_var_str_commaized_inquotes(self):
+        text = "Concatenating a variable and a string<!--var2=\"test,\" set, go\"\"-->"
+        x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
+        self.assertEqual(x,"Concatenating a variable and a string")
+        self.assertEqual(self.vars["var2"], "test,\" set, go\"")
+
+    def test_variable_set_concat_var_str_equalssign(self):
+        text = "Concatenating a variable and a string<!--var2=test,\" set=21!\"-->"
+        x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
+        self.assertEqual(x,"Concatenating a variable and a string")
+        self.assertEqual(self.vars["var2"], "abc set=21!")
+
     def test_variable_set_concat_vars_spaced(self):
-        text = "Concatenating two variables<!--var2=test, test-->"
+        text = "Concatenating two variables<!--var2=test,\" \",test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating two variables")
         self.assertEqual(self.vars["var2"], "abc abc")

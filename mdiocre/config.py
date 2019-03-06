@@ -47,7 +47,7 @@ class Config:
         """
         self.config = self.read_config(filename)
         self.validate(self.config)
-        
+
     def validate_varname(self, var_name):
         """ Validates a given variable name, according to these rules:
             * Must **only** contain lowercase letters, dashes, underscores, and numbers.
@@ -71,13 +71,13 @@ class Config:
                 to use.
         Returns:
             dict: The configuration dictionary in self.config, if successful.
-        
+
         Raises:
             ConfigInvalid: if it can't find the file specified by
                 `config_file`.
         """
         self.log.header("Trying to read "+config_file+"...", False)
-        
+
         if os.path.exists(config_file):
             config = cp.ConfigParser()
             config.read(config_file)
@@ -127,7 +127,7 @@ class Config:
             dict: The configuration dictionary in self.config, if successful.
             dict: As self.vars, the variable key from self.config.
             bool: In self.valid, set to True if all is OK.
-        
+
         Raises:
             ConfigInvalid: if `config` is not a :obj:`dict`.
         """
@@ -136,9 +136,24 @@ class Config:
             raise ConfigInvalid("This is not a valid configuration!")
         else:
             self.log.header("CONFIG CHECK", True)
-            self.log.name("Check names")
+            self.log.name("Check required keys")
+            reqd_opts = ["modules",
+                         "use-templates",
+                         "source-folder",
+                         "build-folder",
+                         "template-folder",
+                         "vars"]
+            for i in reqd_opts:
+                try:
+                    self.log.log(i+"\t... "+str(reqd_opts[i]))
+                except KeyError as e:
+                    self.log.error("Cannot find key: "+i)
+                    return
+
+            self.log.name("Check extra keys")
             for i in config.keys():
-                self.log.log(i+"\t... "+str(config[i]))
+                if i not in reqd_opts:
+                    self.log.log(i+"\t... "+str(config[i]))
 
             self.log.name("Check variable names")
             try:

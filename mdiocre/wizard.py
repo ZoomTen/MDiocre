@@ -130,8 +130,9 @@ class Wizard:
         # (Optional)
         index_ignore_list   = ["root"]
         try:
-            index_ignore_list+cfg["no-index"]
-        except:
+            index_ignore_list += cfg["no-index"]
+            self.log.header("Index ignore list: "+str(index_ignore_list), False)
+        except KeyError:
             self.log.warning("The 'no-index' option in config is not set, continuing...")
 
         # setup base dirs

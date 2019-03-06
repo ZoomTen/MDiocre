@@ -124,6 +124,17 @@ class TestWizard(unittest.TestCase):
 
     def test_make_site(self):
         self.wizard.build_site(index_html=True, use_prefix=False)
+        # Check for html indexing
+        with open("wizard/src/sub/index.md","r") as sub_index:
+            o = sub_index.read()
+            c = """This is the index page
+
+* [Emptytemplate](emptytemplate.html)
+* [Page1.md](page1.html)
+* [Page2.md](page2.html)
+* [Page3.md](page3.html)
+"""
+            self.assertEqual(o,c)
 
     @unittest.skip("todo")
     def test_clean_site(self):

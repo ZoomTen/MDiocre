@@ -145,10 +145,9 @@ class Config:
                          "vars"]
             for i in reqd_opts:
                 try:
-                    self.log.log(i+"\t... "+str(reqd_opts[i]))
+                    self.log.log(i+"\t... "+str(config[i]))
                 except KeyError as e:
-                    self.log.error("Cannot find key: "+i)
-                    return
+                    raise ConfigInvalid("Can't find key "+i+", fix your configuration!")
 
             self.log.name("Check extra keys")
             for i in config.keys():
@@ -156,19 +155,19 @@ class Config:
                     self.log.log(i+"\t... "+str(config[i]))
 
             self.log.name("Check variable names")
-            try:
-                for i in iter(config["vars"].keys()):
-                    self.validate_varname(i)
-                    self.log.log(i+"\t... valid")
-            except KeyError as e:
-                self.log.error("Can't find key 'vars'")
-                return
-            except InvalidVarName as e:
-            	self.log.log(i+"\t... INVALID")
-            	self.log.error("Illegal variable name "+i+"! Please fix your configuration!")
-            	return
-            else:
-                self.config = config
-                self.vars = self.config["vars"]
-                self.log.header("Configuration check okay!", False)
-                self.valid = True
+            #try:
+            for i in iter(config["vars"].keys()):
+                self.validate_varname(i)
+                self.log.log(i+"\t... valid")
+            #except KeyError as e:
+            #    self.log.error("Can't find key 'vars'")
+            #    return
+            #except InvalidVarName as e:
+            #	self.log.log(i+"\t... INVALID")
+            #	self.log.error("Illegal variable name "+i+"! Please fix your configuration!")
+            #	return
+            #else:
+            self.config = config
+            self.vars = self.config["vars"]
+            self.log.header("Configuration check okay!", False)
+            self.valid = True

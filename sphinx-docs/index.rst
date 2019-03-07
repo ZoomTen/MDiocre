@@ -11,8 +11,7 @@ Requirements:
    * colorama (for terminal output)
 
 .. toctree::
-   setup/index
-   technical/index
+   setup2/index
 
 Indices and tables
 ==================

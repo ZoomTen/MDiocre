@@ -1,3 +1,5 @@
 mdiocre/__pycache__
 tests/__pycache__
 sphinx-docs/_build
+test/wizard/src/nonindex/index.md
+test/wizard/src/sub/index.md

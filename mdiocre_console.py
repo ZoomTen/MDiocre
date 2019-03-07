@@ -5,7 +5,7 @@ import sys
 import argparse as ap
 import mdiocre
 
-VERSION = [0, 1, 0, "2019.02.23"]
+VERSION = [0, 2, 0, "2019.03.07"]
 
 class Parse(ap.ArgumentParser):
     def error(self, message):
@@ -29,28 +29,21 @@ def create_objects(args):
     wizard     = mdiocre.Wizard(config=config, logger=log)
 
 def build_site(args):
-    print(type(args.exclude))
     if type(args.exclude) is str:
         excludes = list(i.replace(" ","") for i in args.exclude.split(","))
     else:
         excludes = None
-    try:
-        wizard.build_site(exclude=excludes,
+    wizard.build_site(exclude=excludes,
                       index_html=args.include_html,
                       move_html=args.copy_html,
                       use_prefix=args.use_prefix)
-    except NameError:
-        pass
 
 def clean_site(args):
     if type(args.exclude) is str:
         excludes = list(i.replace(" ","") for i in args.exclude.split(","))
     else:
         excludes = None
-    try:
-        wizard.clean_site(exclude=excludes)
-    except NameError:
-        pass
+    wizard.clean_site(exclude=excludes, remove_index_pages=args.clean_index)
 
 def none_mode(args):
     print("\nPlease specify a command to use!\nAvailable commands are:\n\tbuild\n\tclean")
@@ -59,7 +52,7 @@ def none_mode(args):
     print("Detail   (-d) :",args.detail)
     print("Config   (-c) :",args.config)
     print("Log file (-l) :",args.logfile)
-    
+
 def main():
     import configparser as cp
     config = cp.ConfigParser()
@@ -68,7 +61,7 @@ def main():
 
     loaded_opts = {"mdiocre": {"detail":False, "config":"config.ini", "logfile":None},\
                  "build":   {"include-html":False, "copy-html":False, "build-exclude":None, "use-prefix":True},\
-                 "clean":   {"clean-exclude":None}}
+                 "clean":   {"clean-exclude":None, "clean-index":True}}
 
     # uh what
     try: loaded_opts["mdiocre"]["detail"]  = config.getboolean("mdiocre", "detail")
@@ -77,7 +70,7 @@ def main():
     except Exception: pass
     try: loaded_opts["mdiocre"]["logfile"] =        config.get("mdiocre", "logfile")
     except Exception: pass
-    
+
     try: loaded_opts["build"]["include-html"]  = config.getboolean("build", "include-html")
     except Exception: pass
     try: loaded_opts["build"]["copy-html"]     = config.getboolean("build", "copy-html")
@@ -86,20 +79,20 @@ def main():
     except Exception: pass
     try: loaded_opts["build"]["use-prefix"]    = config.getboolean("build", "use-prefix")
     except Exception: pass
-    
+
     try: loaded_opts["clean"]["clean-exclude"]  = config.get("clean", "clean-exclude")
     except Exception: pass
-    
-        
+    try: loaded_opts["clean"]["clean-index"]  = config.getboolean("clean", "clean-index")
+    except Exception: pass
+
     main_opts = loaded_opts["mdiocre"]
     build_opts = loaded_opts["build"]
     clean_opts = loaded_opts["clean"]
-    
+
     # program parser
     p = Parse(prog="mdiocre",
-              description = "This is an automated static"
-                            " website building tool that's"
-                            " a Jekyll ripoff lmao"
+              description = "Automated static website building tool using the"
+                            " Markdown format."
              )
 
     p.add_argument(
@@ -112,17 +105,13 @@ def main():
                               +str(VERSION[2])+", "
                               +"released "+VERSION[3]
                       )
-
     p.add_argument('-c', '--config',
                        help='use custom configuration file')
-
     p.add_argument('-d', '--detail',
                        action='store_true',
                        help='display actions performed in more detail')
-
     p.add_argument('-l', '--logfile',
                        help='log action messages to a file in the root directory')
-
     p.set_defaults(config=main_opts["config"],
                    detail=main_opts["detail"],
                    logfile=main_opts["logfile"], mode=None, run=none_mode)
@@ -165,15 +154,23 @@ def main():
                 "-x", "--exclude",
                 help="only clean these modules : "
                 "list of modules separated by spaces")
-    p_clean.set_defaults(exclude=clean_opts["clean-exclude"],run=clean_site, mode="cleaning")
-    
+    p_clean.add_argument(
+                "-i", "--clean-index",
+                action="store_true",
+                help="Also clean index.md files"
+                )
+    p_clean.set_defaults(exclude=clean_opts["clean-exclude"],
+                         clean_index=clean_opts["clean-index"],run=clean_site, mode="cleaning")
+
+    # print help if invokes without commands
     if len(sys.argv)==1:
         p.print_help(sys.stderr)
         sys.exit(1)
 
-    o = p.parse_args() # cmdline options
-    
+    o = p.parse_args() # parse cmdline options
+
     create_objects(o)
+
     try:
         create_objects(o)
     except mdiocre.exception.ConfigInvalid as e:
@@ -182,7 +179,7 @@ def main():
     except Exception as e:
         print("ERROR INITIALIZING!\n"+e.__str__())
         return
-    
+
     if o.mode:
         log.header("\nMDiocre version "+str(VERSION[0])+"."
                               +str(VERSION[1])+"."

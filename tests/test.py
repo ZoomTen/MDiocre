@@ -9,7 +9,6 @@ import mdiocre
 import unittest
 import mock_log
 
-
 class TestConfig(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
@@ -106,9 +105,11 @@ class TestConfig(unittest.TestCase):
         random_file_name = ""
         for i in range(32):
             random_file_name += chr(97+int(random()*26))
-        print("using random file name: "+random_file_name, file=sys.stderr)
+        random_file_name += ".ini"
+        print("using random file name: "+random_file_name, file=sys.stderr, end='... ')
         with self.assertRaises(mdiocre.ConfigInvalid):
             mdiocre.Config(filename=random_file_name,logger=mock_log.Debug(False))
+
 class TestWizard(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
@@ -118,27 +119,62 @@ class TestWizard(unittest.TestCase):
         self.config = mdiocre.Config(filename="wizard/config.ini",logger=mock_log.Debug(False))
         self.wizard = mdiocre.Wizard(config=self.config)
 
-    @unittest.skip("todo")
     def test_make_page(self):
-        pass
+        var_list = self.config.config["vars"]
+        command = self.wizard.build_page("wizard/src/sub/page1.md", "wizard/template/main.html", var_list)
+        expected = """<html>
+<head>
+<title>My Homepage : Page 1</title>
+</head>
+<body>
+<h1 id="page-1">Page 1</h1>
+<p>Date test of 1970-01-01</p>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 
-    def test_make_site(self):
-        self.wizard.build_site(index_html=True, use_prefix=False)
-        # Check for html indexing
-        with open("wizard/src/sub/index.md","r") as sub_index:
-            o = sub_index.read()
-            c = """This is the index page
-
-* [Emptytemplate](emptytemplate.html)
-* [Page1.md](page1.html)
-* [Page2.md](page2.html)
-* [Page3.md](page3.html)
+</body>
+</html>
 """
-            self.assertEqual(o,c)
+        self.assertEqual(expected, command)
 
-    @unittest.skip("todo")
-    def test_clean_site(self):
-        pass
+    def test_list_files_root(self):
+        # This will only index the root directory
+        compare = ["index.md"]
+        command = self.wizard.get_files(root_folder="wizard/src", ext="md", module="root")
+        self.assertEqual(compare, command)
+
+    def test_list_files_module_md(self):
+        # This will also index subdirectories
+        compare = ['anothersub/page1.md', 'anothersub/page2.md',
+                   'anothersub/page3.md', 'anothersub2/page1.md',
+                   'anothersub2/page2.md', 'anothersub2/page3.md',
+                   'page1.md', 'page2.md', 'page3.md']
+        command = self.wizard.get_files(root_folder="wizard/src", ext="md", module="sub")
+        for i in compare:
+            self.assertIn(i, command)
+
+    def test_make_index_sub(self):
+        # TODO: Still need to sort this out
+        index_string = """This is the index page
+
+* **1601-01-01** - [Page 3](page3.html)
+* **1970-01-01** - [Page 1](page1.html)
+* **1980-01-01** - [Page 2](page2.html)
+* [Emptytemplate.html](anothersub/emptytemplate.html)
+* [Emptytemplate.html](anothersub2/emptytemplate.html)
+* [Emptytemplate.html](emptytemplate.html)
+* [another sub 2: Page 1](anothersub2/page1.html)
+* [another sub 2: Page 2](anothersub2/page2.html)
+* [another sub 2: Page 3](anothersub2/page3.html)
+* [another sub: Page 1](anothersub/page1.html)
+* [another sub: Page 2](anothersub/page2.html)
+* [another sub: Page 3](anothersub/page3.html)
+"""
+        index_out = self.wizard.build_index(root_folder="wizard/src", module_name="sub")
+        self.assertEqual(index_string, index_out)
+
+    def test_make_site_clean_site(self):
+        self.wizard.build_site(index_html=True, use_prefix=False)
+        self.wizard.clean_site(remove_index_pages=True)
 
 class TestUtils(unittest.TestCase):
     @classmethod
@@ -170,6 +206,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.vars["var1"], "set")
 
     def test_variable_set_assign_var(self):
+        # putting the equals sign in between spaces will NOT WORK
         text = "Directly assigning a variable to another<!--var3=test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Directly assigning a variable to another")
@@ -194,10 +231,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.vars["var2"], "test,\" set, go\"")
 
     def test_variable_set_concat_var_str_equalssign(self):
-        text = "Concatenating a variable and a string<!--var2=test,\" set=21!\"-->"
+        text = "Concatenating a variable and a string<!--var2=test,\" 2 + 2 = 4 quick maths\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
-        self.assertEqual(self.vars["var2"], "abc set=21!")
+        self.assertEqual(self.vars["var2"], "abc 2 + 2 = 4 quick maths")
 
     def test_variable_set_concat_vars_spaced(self):
         text = "Concatenating two variables<!--var2=test,\" \",test-->"
@@ -206,11 +243,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.vars["var2"], "abc abc")
 
     def test_variable_set_concat_vars_unspaced(self):
-        text = "Concatenating two variables<!--var2=test,test-->"
+        text = "Concatenating two variables<!--var2=test, test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating two variables")
         self.assertEqual(self.vars["var2"], "abcabc")
-
 
 if __name__ == "__main__":
    print("\n\nSTARTING UNIT TEST\n", file=sys.stderr)

@@ -122,7 +122,7 @@ class Wizard:
                 actual_name = i.replace(".md", ".html").replace(".MD", ".html")
 
                 if PREFIX:
-                    path = module + "/" + actual_name
+                    path = module_name + "/" + actual_name
                 else:
                     path = actual_name
 

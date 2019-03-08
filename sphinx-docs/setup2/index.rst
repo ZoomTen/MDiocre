@@ -39,7 +39,7 @@ TL;DR
 * Create these folders inside the ``site`` folder: ``_src``, ``_templates``.
 
 * Go inside the ``_src`` folder and create ``index.md``:
-.. code-block:: markdown
+.. code-block:: md
 
    <!--title="Home Page"-->
    # Welcome to <!--var:site-name-->!
@@ -62,7 +62,7 @@ TL;DR
 * Go back to ``site``, then go inside the ``_src`` folder. Create a new folder called ``blog``.
 
 * Inside the ``blog`` folder, make a file called ``my_first_blog.md``
-.. code-block:: markdown
+.. code-block:: md
 
    <!--title="Blog: Everything's boring"-->
    <!--date="2019-03-07"-->
@@ -71,7 +71,7 @@ TL;DR
    I had a bad day lmao
 
 * Create a file called ``index.template`` in the same folder:
-.. code-block:: markdown
+.. code-block:: md
 
    <!--title="Blog: Index"-->
    # Blog

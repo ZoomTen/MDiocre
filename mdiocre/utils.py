@@ -79,6 +79,16 @@ class Utils:
             Returns:
                 str: The converted HTML string.
         """
+        
+        # Using this way of working will not process variables AS the file is
+        # read, but reads the ENTIRE file and sets the values in a variable
+        # to the last occurence where the variable is set.
+        #
+        # Worse, every variable is assumed to be global for now
+        #
+        # And when a variable is set, it can only be changed in the next page
+        # the converter (wizard.build_site) processes.
+        
         converted = self.process_vars(markdown, var_list=var_list, set_var=True, file_name=file_name)
         converted = self.process_vars(converted, var_list=var_list, file_name=file_name)
         html = pd.convert_text(converted, 'html', format="markdown")

@@ -36,7 +36,8 @@ def build_site(args):
     wizard.build_site(exclude=excludes,
                       index_html=args.include_html,
                       move_html=args.copy_html,
-                      use_prefix=args.use_prefix)
+                      use_prefix=args.use_prefix,
+                      move_images=args.copy_pics)
 
 def clean_site(args):
     if type(args.exclude) is str:
@@ -56,9 +57,9 @@ def none_mode(args):
 
 def main():
     # Default options
-
+    
     loaded_opts = {"mdiocre": {"detail":False, "config":"config.ini", "logfile":None},\
-                 "build":   {"include-html":False, "copy-html":False, "build-exclude":None, "use-prefix":True},\
+                 "build":   {"include-html":False, "copy-html":False, "copy-pics":False, "build-exclude":None, "use-prefix":True},\
                  "clean":   {"clean-exclude":None, "clean-index":True}}
 
     main_opts = loaded_opts["mdiocre"]
@@ -103,14 +104,19 @@ def main():
                 help="exclude building these modules : "
                      "list of modules separated by commas")
     p_build.add_argument(
-                "-i", "--include-html",
+                "--include-html",
                 action="store_true",
                 help="Include HTML files in the index. This will also copy the indexed html into the build directory!"
                 )
     p_build.add_argument(
-                "-c", "--copy-html",
+                "--copy-html",
                 action="store_true",
                 help="Copy any HTML file present in the source directories to the respective build directories."
+                )
+    p_build.add_argument(
+                "--copy-pics",
+                action="store_true",
+                help="Copy any JPEG, PNG, and GIF files present in the source directories to the respective build directories."
                 )
     p_build.add_argument(
                 "-p", "--use-prefix",
@@ -157,6 +163,8 @@ def main():
     except Exception: pass
     try: loaded_opts["build"]["copy-html"]     = config.getboolean("build", "copy-html")
     except Exception: pass
+    try: loaded_opts["build"]["copy-pics"]     = config.getboolean("build", "copy-pics")
+    except Exception: pass
     try: loaded_opts["build"]["build-exclude"] = config.get("build", "build-exclude")
     except Exception: pass
     try: loaded_opts["build"]["use-prefix"]    = config.getboolean("build", "use-prefix")
@@ -178,6 +186,7 @@ def main():
     p_build.set_defaults(exclude=build_opts["build-exclude"],
                          include_html=build_opts["include-html"],
                          copy_html=build_opts["copy-html"],
+                         copy_pics=build_opts["copy-pics"],
                          use_prefix=build_opts["use-prefix"],run=build_site, mode="building")
     p_clean.set_defaults(exclude=clean_opts["clean-exclude"],
                          clean_index=clean_opts["clean-index"],run=clean_site, mode="cleaning")

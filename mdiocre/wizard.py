@@ -185,7 +185,7 @@ class Wizard:
                 document = self.tools.process_vars(document, var_list=vars_list, file_name=template_file)
                 return document
 
-    def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True):
+    def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True, move_images=False):
         """ Generates a site based on a set configuration, explained in :obj:`Notes`.
 
             Parameters:
@@ -375,6 +375,21 @@ class Wizard:
                         shutil.copyfile(target, ofile)
                 else:
                     self.log.log("No html files to copy.")
+            
+            if move_images:
+                im_list  = self.get_files(root_folder=source_base, ext="jpg", module=module)
+                im_list += self.get_files(root_folder=source_base, ext="jpeg", module=module)
+                im_list += self.get_files(root_folder=source_base, ext="png", module=module)
+                im_list += self.get_files(root_folder=source_base, ext="gif", module=module)
+                self.log.name("Copying jpegs, pngs, gifs.")
+                if (len(im_list) > 0):
+                    for i in im_list:
+                        target = osp.join(source_dir, i)
+                        ofile    = osp.join(build_dir, i)
+                        self.log.log(i+" -> "+ofile)
+                        shutil.copyfile(target, ofile)
+                else:
+                    self.log.log("No image files to copy.")
 
         self.log.header("Build done!", False)
 

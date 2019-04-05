@@ -371,6 +371,7 @@ class Wizard:
                     for i in ht_list:
                         target = osp.join(source_dir, i)
                         ofile    = osp.join(build_dir, i)
+                        self.tools.check_exists(osp.dirname(ofile), osp.dirname(ofile), quiet=1)
                         self.log.log(i+" -> "+ofile)
                         shutil.copyfile(target, ofile)
                 else:
@@ -386,6 +387,7 @@ class Wizard:
                     for i in im_list:
                         target = osp.join(source_dir, i)
                         ofile    = osp.join(build_dir, i)
+                        self.tools.check_exists(osp.dirname(ofile),osp.dirname(ofile),quiet=1)
                         self.log.log(i+" -> "+ofile)
                         shutil.copyfile(target, ofile)
                 else:

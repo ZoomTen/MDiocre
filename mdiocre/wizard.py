@@ -36,10 +36,14 @@ class Wizard:
         """
         Makes a file list covering a module and its subdirectories. (Except
         the root module)
-
-        Todo:
-           More documentation, make up my mind whether or not to use
-           the web root folder or some base folder
+        
+        Parameters:
+            root_folder (str): Web root folder.
+            module      (str): Module name.
+            ext         (str): File extension.
+        
+        Returns:
+            List containing all the file names.
         """
         if type(root_folder) != str:
             raise Exception("No root folder specified")
@@ -164,9 +168,6 @@ class Wizard:
         """
         Build single html page from a module
         Todo:
-           Make this function. Maybe move
-           the page generation part of
-           :py:func:`build_site` here?
         """
         if type(source_file) != str:
             raise Exception("No source file specified")
@@ -251,7 +252,7 @@ class Wizard:
         build_base          = osp.realpath(cfg["build-folder"])
         template_base       = osp.realpath(cfg["template-folder"])
 
-        # Index ignore list
+        # Index ignore list, has root by default
         index_ignore_list   = ["root"]
         try:
             index_ignore_list += cfg["no-index"]
@@ -263,7 +264,7 @@ class Wizard:
         # list excluded modules
         if exclude:
             self.log.header("Excluded modules: " + str(exclude), False)
-            if len(exclude) == len(modules_list):
+            if sorted(exclude) == sorted(modules_list):
                 self.log.header("All modules excluded.", False)
             for i in exclude:
                 try:
@@ -287,12 +288,14 @@ class Wizard:
                 self.tools.check_exists(
                                     osp.join(source_base, module),
                                     module + " source folder", strict=True)
+                                    
         self.log.name("Checking if build modules dir exists: ")
         for module in modules_list:
             if module != "root":
                 self.tools.check_exists(
                                     osp.join(build_base, module),
                                     module + " build folder")
+                                    
         self.log.name("Checking for index templates: ")
         for module in modules_list:
             # root does not need an index template
@@ -301,6 +304,7 @@ class Wizard:
                               osp.join(source_base, module, "index.template"),
                               "index.template for " + module,
                               create=False)
+                              
         # check templates, order doesn't matter
         # templates MUST be in HTML
         try:
@@ -313,6 +317,7 @@ class Wizard:
         except FileNotFound as e:
             self.log.error("Can't find template for " + template + " , could not continue.")
             return
+            
 
         # BUILD
         self.log.header("BUILD", True)
@@ -349,6 +354,7 @@ class Wizard:
                 using_template = modules_list.index(module)
             else:
                 using_template = 0
+                
             # list pages
             page_list = self.get_files(root_folder=source_base, ext="md", module=module)
             template_name = template_list[using_template]

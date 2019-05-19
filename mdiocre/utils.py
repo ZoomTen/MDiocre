@@ -87,7 +87,7 @@ class Utils:
         # Worse, every variable is assumed to be global for now
         #
         # And when a variable is set, it can only be changed in the next page
-        # the converter (wizard.build_site) processes.
+        # the converter (wizard.build_site) processes. Not exactly predictable.
         
         converted = self.process_vars(markdown, var_list=var_list, set_var=True, file_name=file_name)
         converted = self.process_vars(converted, var_list=var_list, file_name=file_name)

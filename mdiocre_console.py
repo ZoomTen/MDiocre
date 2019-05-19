@@ -57,7 +57,6 @@ def none_mode(args):
 
 def main():
     # Default options
-    
     loaded_opts = {"mdiocre": {"detail":False, "config":"config.ini", "logfile":None},\
                  "build":   {"include-html":False, "copy-html":False, "copy-pics":False, "build-exclude":None, "use-prefix":True},\
                  "clean":   {"clean-exclude":None, "clean-index":True}}
@@ -66,7 +65,7 @@ def main():
     build_opts = loaded_opts["build"]
     clean_opts = loaded_opts["clean"]
 
-    # program parser
+    # Main program parser
     p = Parse(prog="mdiocre",
               description = "Automated static website building tool using the"
                             " Markdown format."
@@ -79,7 +78,7 @@ def main():
                               +str(VERSION[0])+"."
                               +str(VERSION[1])+"."
                               +str(VERSION[2])+", "
-                              +"released "+VERSION[3]
+                              +"updated "+VERSION[3]
                       )
     p.add_argument('-C', '--config',
                        help='use custom app configuration file')
@@ -94,6 +93,7 @@ def main():
 
     p_subs  = p.add_subparsers()
 
+    # Build parser
     p_build = p_subs.add_parser(
                   "build",
                   description="Build the website"
@@ -106,7 +106,7 @@ def main():
     p_build.add_argument(
                 "--include-html",
                 action="store_true",
-                help="Include HTML files in the index. This will also copy the indexed html into the build directory!"
+                help="Include HTML files in the index. This will also copy the indexed html into the build directory."
                 )
     p_build.add_argument(
                 "--copy-html",
@@ -121,9 +121,10 @@ def main():
     p_build.add_argument(
                 "-p", "--use-prefix",
                 action="store_true",
-                help="Use module prefixes in built files"
+                help="Use module prefixes in built files (ex: ...)"
                 )
     
+    # Clean parser
     p_clean = p_subs.add_parser(
                   "clean",
                   help="clean built site")
@@ -148,6 +149,7 @@ def main():
     
     o = p.parse_args() # parse cmdline options
     
+    # Main Application configuration.
     import configparser as cp
     config = cp.ConfigParser()
     config.read(o.config)
@@ -179,6 +181,7 @@ def main():
     build_opts = loaded_opts["build"]
     clean_opts = loaded_opts["clean"]
     
+    # Set application configuration.
     p.set_defaults(config="mdiocre.ini",
                    site_config=main_opts["config"],
                    detail=main_opts["detail"],
@@ -191,13 +194,13 @@ def main():
     p_clean.set_defaults(exclude=clean_opts["clean-exclude"],
                          clean_index=clean_opts["clean-index"],run=clean_site, mode="cleaning")
 
+
+    # Begin execution
     o = p.parse_args() # parse cmdline options
     
     #print("o contains", str(o))
     #print("loaded opts contains", str(loaded_opts))
     #exit()
-    
-    create_objects(o)
 
     try:
         create_objects(o)

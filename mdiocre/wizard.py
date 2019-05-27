@@ -1,4 +1,3 @@
-import sys
 import shutil
 from os import path as osp
 from os import walk as osw
@@ -6,6 +5,7 @@ from .utils import Utils
 from .config import Config
 from .logger import Debug
 from .exception import *
+
 
 class Wizard:
     """
@@ -24,10 +24,13 @@ class Wizard:
         ConfigInvalid: When `config` isn't a valid
         :py:class:`~mdiocre.Config` object.
     """
+
+
     # image extension support list
     img_support = ["jpg", "jpeg", "png", "gif", "webp"]
-    
-    def __init__(self, config=None, logger=Debug(True)):
+
+
+    def __init__(self, config, logger=Debug(True)):
         self.log = logger
         if type(config) is Config:
             self.config = config
@@ -35,24 +38,25 @@ class Wizard:
             raise ConfigInvalid("Invalid configuration type!")
         self.tools = Utils(logger=logger)
 
+
     def get_files(self, root_folder=None, ext=None, module=None):
         """
         Makes a file list covering a module and its subdirectories. (Except
         the root module)
-        
+
         Parameters:
             root_folder (str): Web root folder.
             module      (str): Module name.
             ext         (str): File extension.
-        
+
         Returns:
             List containing all the file names.
         """
-        if type(root_folder) != str:
+        if not isinstance(root_folder, str):
             raise Exception("No root folder specified")
-        if type(ext) != str:
+        if not isinstance(ext, str):
             raise Exception("No file extension specified")
-        if type(module) != str:
+        if not isinstance(module, str):
             raise Exception("No module specified")
 
         from glob import glob
@@ -65,19 +69,16 @@ class Wizard:
                     if name[-len(ext):].lower() == ext.lower():
                         regex = r'^' + re.escape(module)
                         file_base = re.sub(regex, '', osp.basename(walk[0]))
-                        result.append(
-                        osp.join(file_base, name)
-                        )
-            return sorted(result)
+                        result.append(osp.join(file_base, name))
         else:
-            files =  glob(root_folder + "/*." + ext)
+            files = glob(root_folder + "/*." + ext)
             if ext.lower() != ext:
                 files += glob(root_folder + "/*." + ext.lower())
             if ext.upper() != ext:
                 files += glob(root_folder + "/*." + ext.upper())
             for a_file in files:
                 result.append(osp.basename(a_file))
-            return sorted(result)
+        return sorted(result)
 
 
     def make_index_entry(self, use_vars=None, path=None, name=None):
@@ -166,12 +167,15 @@ class Wizard:
         # sort entry array and insert it to content
         content += "\n".join(sorted(index_contents))
         return content
-        
-    def build_index(self, root_folder=None, module_name=None, index_html=True, index_md=True, PREFIX=False, vars_list={}):
+
+
+    def build_index(self, root_folder=None, module_name=None, index_html=True, index_md=True, PREFIX=False, vars_list=None):
         # sort_by="date"
         """
         Create index for a single module.
         """
+        if vars_list is None:
+            vars_list = {}
         if type(root_folder) != str:
             raise Exception("No base folder specified")
         if type(module_name) != str:
@@ -215,11 +219,14 @@ class Wizard:
                 self.log.log("Creating index.md entry for " + module_name)
                 return index_md
 
-    def build_page(self, source_file=None, template_file=None, vars_list={}):
+
+    def build_page(self, source_file=None, template_file=None, vars_list=None):
         """
         Build single html page from a module
         Todo:
         """
+        if vars_list is None:
+            vars_list = {}
         if type(source_file) != str:
             raise Exception("No source file specified")
         if type(template_file) != str:
@@ -236,6 +243,7 @@ class Wizard:
                 document = self.tools.process_vars(template, set_var=True, var_list=vars_list, file_name=template_file)
                 document = self.tools.process_vars(document, var_list=vars_list, file_name=template_file)
                 return document
+
 
     def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True, move_images=True):
         """ Generates a site based on a set configuration, explained in :obj:`Notes`.
@@ -339,14 +347,14 @@ class Wizard:
                 self.tools.check_exists(
                                     osp.join(source_base, module),
                                     module + " source folder", strict=True)
-                                    
+
         self.log.name("Checking if build modules dir exists: ")
         for module in modules_list:
             if module != "root":
                 self.tools.check_exists(
                                     osp.join(build_base, module),
                                     module + " build folder")
-                                    
+
         self.log.name("Checking for index templates: ")
         for module in modules_list:
             # root does not need an index template
@@ -355,7 +363,7 @@ class Wizard:
                               osp.join(source_base, module, "index.template"),
                               "index.template for " + module,
                               create=False)
-                              
+
         # check templates, order doesn't matter
         # templates MUST be in HTML
         try:
@@ -368,7 +376,7 @@ class Wizard:
         except FileNotFound as e:
             self.log.error("Can't find template for " + template + " , could not continue.")
             return
-            
+
 
         # BUILD
         self.log.header("BUILD", True)
@@ -405,7 +413,7 @@ class Wizard:
                 using_template = modules_list.index(module)
             else:
                 using_template = 0
-                
+
             # list pages
             page_list = self.get_files(root_folder=source_base, ext="md", module=module)
             template_name = template_list[using_template]
@@ -433,12 +441,12 @@ class Wizard:
                         shutil.copyfile(target, ofile)
                 else:
                     self.log.log("No html files to copy.")
-            
+
             if move_images:
                 im_list  = []
                 for i in self.img_support:
                     im_list += self.get_files(root_folder=source_base, ext=i, module=module)
-                    
+
                 self.log.name("Copying images.")
                 if (len(im_list) > 0):
                     for i in im_list:
@@ -451,6 +459,7 @@ class Wizard:
                     self.log.log("No image files to copy.")
 
         self.log.header("Build done!", False)
+
 
     def clean_site(self, config=None, exclude=None, remove_index_pages=False, remove_images=True):
         """ Cleans the generated build directories.

@@ -1,25 +1,31 @@
 import sys
 import os
 
+
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
+
 import mdiocre
 import unittest
 import mock_log
+
 
 class TestConfig(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
         print("\nRunning mdiocre.Config test!", file=sys.stderr)
 
+
     @classmethod
     def tearDownClass(TestConfig):
         pass
 
+
     def setUp(self):
         pass
+
 
     def test_load_config_okay(self):
         test = {
@@ -36,6 +42,7 @@ class TestConfig(unittest.TestCase):
                    }
         c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
 
+
     def test_load_config_invalid_var_name(self):
         test = {
                    "vars": {"SiTeNaMe": "My Homepage",
@@ -50,7 +57,8 @@ class TestConfig(unittest.TestCase):
                    "template-folder": "ShortPages/_templates",
                    }
         with self.assertRaises(mdiocre.InvalidVarName):
-            c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
+            c = mdiocre.Config(config=test, logger=mock_log.Debug(False))
+
 
     def test_load_config_not_okay(self):
         """
@@ -64,7 +72,8 @@ class TestConfig(unittest.TestCase):
                    "template-folder": "ShortPages/_templates",
                    }
         with self.assertRaises(mdiocre.ConfigInvalid):
-            c = mdiocre.Config(config=test,logger=mock_log.Debug(False))
+            c = mdiocre.Config(config=test, logger=mock_log.Debug(False))
+
 
     def test_load_config_file_okay(self):
         import os
@@ -89,15 +98,17 @@ class TestConfig(unittest.TestCase):
         else:
             self.fail("required file "+conf_file+" does not exist")
 
+
     def test_load_config_file_not_okay(self):
     # this is not a valid config
         import os
         conf_file = "cfg_test/config.invalid.ini"
         if os.path.exists(conf_file):
             with self.assertRaises(mdiocre.ConfigInvalid):
-                mdiocre.Config(filename="config.invalid.ini",logger=mock_log.Debug(False))
+                mdiocre.Config(filename="config.invalid.ini", logger=mock_log.Debug(False))
         else:
             self.fail("required file "+conf_file+" does not exist")
+
 
     def test_load_config_file_not_existent(self):
     # no such file
@@ -108,16 +119,19 @@ class TestConfig(unittest.TestCase):
         random_file_name += ".ini"
         print("using random file name: "+random_file_name, file=sys.stderr, end='... ')
         with self.assertRaises(mdiocre.ConfigInvalid):
-            mdiocre.Config(filename=random_file_name,logger=mock_log.Debug(False))
+            mdiocre.Config(filename=random_file_name, logger=mock_log.Debug(False))
+
 
 class TestWizard(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
         print("\nRunning mdiocre.Wizard test!", file=sys.stderr)
 
+
     def setUp(self):
-        self.config = mdiocre.Config(filename="wizard/config.ini",logger=mock_log.Debug(False))
+        self.config = mdiocre.Config(filename="wizard/config.ini", logger=mock_log.Debug(False))
         self.wizard = mdiocre.Wizard(config=self.config)
+
 
     def test_make_page(self):
         var_list = self.config.config["vars"]
@@ -136,11 +150,13 @@ class TestWizard(unittest.TestCase):
 """
         self.assertEqual(expected, command)
 
+
     def test_list_files_root(self):
         # This will only index the root directory
         compare = ["index.md"]
         command = self.wizard.get_files(root_folder="wizard/src", ext="md", module="root")
         self.assertEqual(compare, command)
+
 
     def test_list_files_module_md(self):
         # This will also index subdirectories
@@ -151,6 +167,7 @@ class TestWizard(unittest.TestCase):
         command = self.wizard.get_files(root_folder="wizard/src", ext="md", module="sub")
         for i in compare:
             self.assertIn(i, command)
+
 
     def test_make_index_sub(self):
         # TODO: Still need to sort this out
@@ -171,7 +188,8 @@ class TestWizard(unittest.TestCase):
 """
         index_out = self.wizard.build_index(root_folder="wizard/src", module_name="sub")
         self.assertEqual(index_string, index_out)
-    
+
+
     def test_make_index_page(self):
             # TODO: Sort out this too
         listing = ["page1.md","page2.md","page3.md"]
@@ -192,10 +210,12 @@ class TestWizard(unittest.TestCase):
         self.wizard.build_site(index_html=True, use_prefix=False)
         self.wizard.clean_site(remove_index_pages=True)
 
+
 class TestUtils(unittest.TestCase):
     @classmethod
     def setUpClass(TestConfig):
         print("\nRunning mdiocre.Utils test!", file=sys.stderr)
+
 
     def setUp(self):
         self.vars = {
@@ -205,21 +225,25 @@ class TestUtils(unittest.TestCase):
                     }
         self.utils = mdiocre.Utils(logger=mock_log.Debug(False))
 
+
     def test_variable_put_single(self):
         text = "Hello from <!--var:test--> world"
         proc = self.utils.process_vars(text, var_list=self.vars)
         self.assertEqual(proc, "Hello from abc world")
+
 
     def test_variable_put_multiple(self):
         text = "<!--var:test-->ing... <!--var:bar--><!--var:foo--> is <!--var:foo--> <!--var:bar-->"
         proc = self.utils.process_vars(text, var_list=self.vars)
         self.assertEqual(proc, "abcing... foobar is bar foo")
 
+
     def test_variable_set_assign_string(self):
         text = "Directly setting variable to string<!--var1=\"set\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Directly setting variable to string")
         self.assertEqual(self.vars["var1"], "set")
+
 
     def test_variable_set_assign_var(self):
         # putting the equals sign in between spaces will NOT WORK
@@ -228,11 +252,13 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(x,"Directly assigning a variable to another")
         self.assertEqual(self.vars["var3"], "abc")
 
+
     def test_variable_set_concat_var_str(self):
         text = "Concatenating a variable and a string<!--var2=test,\" set\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set")
+
 
     def test_variable_set_concat_var_str_commaized(self):
         text = "Concatenating a variable and a string<!--var2=test,\" set, go\"-->"
@@ -240,11 +266,13 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc set, go")
 
+
     def test_variable_set_concat_var_str_commaized_inquotes(self):
         text = "Concatenating a variable and a string<!--var2=\"test,\" set, go\"\"-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "test,\" set, go\"")
+
 
     def test_variable_set_concat_var_str_equalssign(self):
         text = "Concatenating a variable and a string<!--var2=test,\" 2 + 2 = 4 quick maths\"-->"
@@ -252,17 +280,20 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(x,"Concatenating a variable and a string")
         self.assertEqual(self.vars["var2"], "abc 2 + 2 = 4 quick maths")
 
+
     def test_variable_set_concat_vars_spaced(self):
         text = "Concatenating two variables<!--var2=test,\" \",test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating two variables")
         self.assertEqual(self.vars["var2"], "abc abc")
 
+
     def test_variable_set_concat_vars_unspaced(self):
         text = "Concatenating two variables<!--var2=test, test-->"
         x = self.utils.process_vars(text, var_list=self.vars, set_var=True)
         self.assertEqual(x,"Concatenating two variables")
         self.assertEqual(self.vars["var2"], "abcabc")
+
 
 if __name__ == "__main__":
    print("\n\nSTARTING UNIT TEST\n", file=sys.stderr)

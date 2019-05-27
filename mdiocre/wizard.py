@@ -24,6 +24,9 @@ class Wizard:
         ConfigInvalid: When `config` isn't a valid
         :py:class:`~mdiocre.Config` object.
     """
+    # image extension support list
+    img_support = ["jpg", "jpeg", "png", "gif", "webp"]
+    
     def __init__(self, config=None, logger=Debug(True)):
         self.log = logger
         if type(config) is Config:
@@ -201,7 +204,7 @@ class Wizard:
                 document = self.tools.process_vars(document, var_list=vars_list, file_name=template_file)
                 return document
 
-    def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True, move_images=False):
+    def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True, move_images=True):
         """ Generates a site based on a set configuration, explained in :obj:`Notes`.
 
             Parameters:
@@ -399,11 +402,11 @@ class Wizard:
                     self.log.log("No html files to copy.")
             
             if move_images:
-                im_list  = self.get_files(root_folder=source_base, ext="jpg", module=module)
-                im_list += self.get_files(root_folder=source_base, ext="jpeg", module=module)
-                im_list += self.get_files(root_folder=source_base, ext="png", module=module)
-                im_list += self.get_files(root_folder=source_base, ext="gif", module=module)
-                self.log.name("Copying jpegs, pngs, gifs.")
+                im_list  = []
+                for i in self.img_support:
+                    im_list += self.get_files(root_folder=source_base, ext=i, module=module)
+                    
+                self.log.name("Copying images.")
                 if (len(im_list) > 0):
                     for i in im_list:
                         target = osp.join(source_dir, i)
@@ -416,7 +419,7 @@ class Wizard:
 
         self.log.header("Build done!", False)
 
-    def clean_site(self, config=None, exclude=None, remove_index_pages=False):
+    def clean_site(self, config=None, exclude=None, remove_index_pages=False, remove_images=True):
         """ Cleans the generated build directories.
 
             Parameters:
@@ -462,6 +465,20 @@ class Wizard:
         for module in modules_list:
             self.log.name("Removing module: " + module)
             mod_dir = osp.join(build_base, module)
+            
+            if remove_images:
+                im_list  = []
+                for i in self.img_support:
+                    im_list += self.get_files(root_folder=build_base, ext=i, module=module)
+                    
+                self.log.name("Removing images.")
+                if (len(im_list) > 0):
+                    for i in im_list:
+                        print(i)
+                        #self.log.log("Removing " + i)
+                        #shutil.rmtree(mod_dir, ignore_errors=True)
+                else:
+                    self.log.log("No image files to delete.")
                     
             if module != "root":
                 try:

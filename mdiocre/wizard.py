@@ -76,14 +76,65 @@ class Wizard:
                 result.append(osp.basename(a_file))
             return sorted(result)
 
+    def make_index_page(self, file_list=None, PREFIX=False, folder_base=None, module_name=None):
+        """
+        Create index page, preparing for modularization
+        
+        Todo:
+            Parameter checking.
+            Clean this up more. Oh, and implement sorting by
+            date or title, reverse or forwards.
+            
+        Parameters:
+            root_folder (str): Web root folder.
+            module      (str): Module name.
+            ext         (str): File extension.
+        
+        Returns:
+            Formatted index page.
+        """
+        content = "* "                      # content buffer
+        index_contents = []
+        # make index of pages
+        for i in file_list:
+            temp_var_list = {}
+            basename = osp.basename(i)
+            name = basename
+            actual_name = i.replace(".md", ".html").replace(".MD", ".html")
+
+            if PREFIX:
+                path = module_name + "/" + actual_name
+            else:
+                path = actual_name
+
+            self.log.log("Add entry for " + osp.join(folder_base, i))
+
+            # scan files for title and date
+            with open(osp.join(folder_base, i), "r") as document:
+                scan = document.read()
+                self.tools.process_vars(scan,
+                                        var_list=temp_var_list,
+                                        set_var=True, file_name=i)
+            indexer = ""
+            if "date" in temp_var_list:
+                indexer += "**" + temp_var_list["date"] + "** - "
+            if "title" in temp_var_list:
+                indexer += "[" + temp_var_list["title"] + "](" + path + ")"
+            else:
+                indexer += "["
+                indexer += " ".join(i.capitalize() for i in name.split("_"))
+                indexer += "](" + path + ")"
+
+            index_contents.append(indexer)
+
+        # sort and put
+        content += "\n* ".join(sorted(index_contents))
+        return content
+        
     def build_index(self, root_folder=None, module_name=None, index_html=True, index_md=True, PREFIX=False, vars_list={}):
         # sort_by="date"
         """
         Create index for a single module.
-
-        Todo:
-           Clean this up more. Oh, and implement sorting by
-           date or title, reverse or forwards.
         """
         if type(root_folder) != str:
             raise Exception("No base folder specified")
@@ -116,43 +167,7 @@ class Wizard:
             self.log.warning("Index template does not exist, "
                              "index won't be created.")
         else:
-            content = "* "                      # content buffer
-            index_contents = []
-            # make index of pages
-            for i in file_list:
-                temp_var_list = {}
-                basename = osp.basename(i)
-                name = basename
-                actual_name = i.replace(".md", ".html").replace(".MD", ".html")
-
-                if PREFIX:
-                    path = module_name + "/" + actual_name
-                else:
-                    path = actual_name
-
-                self.log.log("Add entry for " + osp.join(folder_base, i).replace(root_folder + osp.sep, ""))
-
-                # scan files for title and date
-                with open(osp.join(folder_base, i), "r") as document:
-                    scan = document.read()
-                    self.tools.process_vars(scan,
-                                            var_list=temp_var_list,
-                                            set_var=True, file_name=i)
-                indexer = ""
-                if "date" in temp_var_list:
-                    indexer += "**" + temp_var_list["date"] + "** - "
-                if "title" in temp_var_list:
-                    indexer += "[" + temp_var_list["title"] + "](" + path + ")"
-                else:
-                    indexer += "["
-                    indexer += " ".join(i.capitalize() for i in name.split("_"))
-                    indexer += "](" + path + ")"
-
-                index_contents.append(indexer)
-
-            # sort and put
-            content += "\n* ".join(sorted(index_contents))
-            vars_list["content"] = content
+            vars_list["content"] = self.make_index_page(file_list, False, folder_base)
 
             # create index.md
             template_file = osp.join(folder_base, "index.template")
@@ -444,10 +459,10 @@ class Wizard:
                     self.log.warning("Can't exclude " + i + ".")
         else:
             self.log.header("No excluded modules.", False)
-
         for module in modules_list:
             self.log.name("Removing module: " + module)
             mod_dir = osp.join(build_base, module)
+                    
             if module != "root":
                 try:
                     if self.tools.check_exists(mod_dir, module + " folder", strict=True, quiet=4):

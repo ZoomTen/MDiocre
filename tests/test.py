@@ -171,6 +171,15 @@ class TestWizard(unittest.TestCase):
 """
         index_out = self.wizard.build_index(root_folder="wizard/src", module_name="sub")
         self.assertEqual(index_string, index_out)
+    
+    def test_make_index_page(self):
+            # TODO: Sort out this too
+        listing = ["page1.md","page2.md","page3.md"]
+        index_string = """* **1601-01-01** - [Page 3](page3.html)
+* **1970-01-01** - [Page 1](page1.html)
+* **1980-01-01** - [Page 2](page2.html)"""
+        index_out = self.wizard.make_index_page(file_list=listing, folder_base="wizard/src/sub", module_name="sub")
+        self.assertEqual(index_string, index_out)
 
     def test_make_site_clean_site(self):
         self.wizard.build_site(index_html=True, use_prefix=False)

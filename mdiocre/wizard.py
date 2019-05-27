@@ -434,6 +434,8 @@ class Wizard:
                 ConfigInvalid: When `config` isn't a valid :py:class:`~mdiocre.Config` object.
 
         """
+        from os import remove
+
         if config is None:
             config = self.config
         if type(config) is not Config:
@@ -465,21 +467,7 @@ class Wizard:
         for module in modules_list:
             self.log.name("Removing module: " + module)
             mod_dir = osp.join(build_base, module)
-            
-            if remove_images:
-                im_list  = []
-                for i in self.img_support:
-                    im_list += self.get_files(root_folder=build_base, ext=i, module=module)
-                    
-                self.log.name("Removing images.")
-                if (len(im_list) > 0):
-                    for i in im_list:
-                        print(i)
-                        #self.log.log("Removing " + i)
-                        #shutil.rmtree(mod_dir, ignore_errors=True)
-                else:
-                    self.log.log("No image files to delete.")
-                    
+
             if module != "root":
                 try:
                     if self.tools.check_exists(mod_dir, module + " folder", strict=True, quiet=4):
@@ -489,7 +477,6 @@ class Wizard:
                     self.log.warning(osp.join(cfg["build-folder"], module) + " doesn't exist; no need to clean.")
 
                 if remove_index_pages:
-                    from os import remove
                     index_md = osp.join(source_base, module, "index.md")
                     try:
                         if self.tools.check_exists(index_md, "index.md", strict=True, quiet=4):
@@ -498,7 +485,6 @@ class Wizard:
                     except FileNotFound:
                         self.log.warning(index_md + " doesn't exist; no need to clean.")
             else:
-                from os import remove
                 built_list = self.get_files(root_folder=build_base, ext="html", module=module)
                 for html in built_list:
                     target = osp.join(build_base, html)
@@ -508,5 +494,27 @@ class Wizard:
                             remove(target)
                     except FileNotFound:
                         self.log.warning(html + " doesn't exist; no need to clean.")
+
+            if remove_images:
+                im_list  = []
+                for i in self.img_support:
+                    im_list += self.get_files(root_folder=build_base, ext=i, module=module)
+
+                self.log.name("Removing images.")
+                if (len(im_list) > 0):
+                    for i in im_list:
+                        if module != "root":
+                            target = osp.join(build_base,module,i)
+                        else:
+                            target = osp.join(build_base,i)
+                        try:
+                            if self.tools.check_exists(target, target, strict=True, quiet=4):
+                                self.log.log("Removing " + target)
+                                remove(target)
+                        except FileNotFound:
+                            self.log.warning(target + " doesn't exist; no need to clean.")
+                else:
+                    self.log.log("No image files to delete.")
+
 
         self.log.header("Clean done!", False)

@@ -79,30 +79,73 @@ class Wizard:
                 result.append(osp.basename(a_file))
             return sorted(result)
 
+
+    def make_index_entry(self, use_vars=None, path=None, name=None):
+        """
+        By default it will index entry of the format:
+            * 2018-12-31 - **New year's Eve!**
+
+        This can be changed using overrides. More index pages
+        will be written later.
+
+        Parameters:
+            use_vars (dict): Load using specified variables.
+            path     (str) : File path.
+            name     (str) : File name to use.
+
+        Returns:
+            A single index entry (str).
+        """
+        if use_vars is None:
+            use_vars = {}
+        single_entry = "* "
+        if "date" in use_vars:
+            single_entry += "**" + use_vars["date"] + "** - "
+        if "title" in use_vars:
+            single_entry += "[" + use_vars["title"] + "](" + path + ")"
+        else:
+            single_entry += "["
+            single_entry += " ".join(name.capitalize() for i in name.split("_"))
+            single_entry += "](" + path + ")"
+        return single_entry
+
+
     def make_index_page(self, file_list=None, PREFIX=False, folder_base=None, module_name=None):
         """
-        Create index page, preparing for modularization
-        
+        Create index page, preparing for modularization.
+        ONLY outputs the index itself. By default it will
+        output index page of the format:
+            * 2018-12-31 - **New year's Eve!**
+            * 2019-01-03 - **Sad days**
+            * 2019-01-07 - **Dangit clapclapclap**
+
+        This can be changed using overrides. More index pages
+        will be written later.
+
         Todo:
             Parameter checking.
             Clean this up more. Oh, and implement sorting by
             date or title, reverse or forwards.
-            
+
         Parameters:
-            root_folder (str): Web root folder.
-            module      (str): Module name.
-            ext         (str): File extension.
-        
+            folder_base (str) : Web root folder.
+            module_name (str) : Module name.
+            file_list   (list): List of files to be indexed relative to
+                                folder_base -> module_name
+
         Returns:
             Formatted index page.
         """
-        content = "* "                      # content buffer
-        index_contents = []
-        # make index of pages
+        content = ""                        # initialize content buffer
+        index_contents = []                 # array of entries to be separated
+                                            # using newlines
+
+        # make index of pages, default configuration
         for i in file_list:
+            self.log.log("Add entry for " + osp.join(folder_base, i))
+
             temp_var_list = {}
-            basename = osp.basename(i)
-            name = basename
+            name = osp.basename(i)
             actual_name = i.replace(".md", ".html").replace(".MD", ".html")
 
             if PREFIX:
@@ -110,28 +153,18 @@ class Wizard:
             else:
                 path = actual_name
 
-            self.log.log("Add entry for " + osp.join(folder_base, i))
-
-            # scan files for title and date
+            # scan files for variables
             with open(osp.join(folder_base, i), "r") as document:
                 scan = document.read()
                 self.tools.process_vars(scan,
                                         var_list=temp_var_list,
                                         set_var=True, file_name=i)
-            indexer = ""
-            if "date" in temp_var_list:
-                indexer += "**" + temp_var_list["date"] + "** - "
-            if "title" in temp_var_list:
-                indexer += "[" + temp_var_list["title"] + "](" + path + ")"
-            else:
-                indexer += "["
-                indexer += " ".join(i.capitalize() for i in name.split("_"))
-                indexer += "](" + path + ")"
 
+            indexer = self.make_index_entry(use_vars=temp_var_list, path=path, name=name)
             index_contents.append(indexer)
 
-        # sort and put
-        content += "\n* ".join(sorted(index_contents))
+        # sort entry array and insert it to content
+        content += "\n".join(sorted(index_contents))
         return content
         
     def build_index(self, root_folder=None, module_name=None, index_html=True, index_md=True, PREFIX=False, vars_list={}):

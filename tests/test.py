@@ -181,6 +181,13 @@ class TestWizard(unittest.TestCase):
         index_out = self.wizard.make_index_page(file_list=listing, folder_base="wizard/src/sub", module_name="sub")
         self.assertEqual(index_string, index_out)
 
+    def test_make_index_entry(self):
+        index_string = """* **1970-01-01** - [Page 1](page1.html)"""
+        mockvars = {"date":"1970-01-01", "title":"Page 1"}
+        index_out = self.wizard.make_index_entry(use_vars=mockvars, path="page1.html", name=None)
+        self.assertEqual(index_string, index_out)
+
+
     def test_make_site_clean_site(self):
         self.wizard.build_site(index_html=True, use_prefix=False)
         self.wizard.clean_site(remove_index_pages=True)

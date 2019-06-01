@@ -245,6 +245,114 @@ class Wizard:
                 return document
 
 
+    def pre_build_checks(self, modules_list, source_base, build_base):
+        # check sources
+        self.log.name("Checking if source modules dir exists: ")
+        for module in modules_list:
+            if module == "root":
+                self.tools.check_exists(
+                                    source_base,
+                                    "root sources", strict=True)
+            else:
+                self.tools.check_exists(
+                                    osp.join(source_base, module),
+                                    module + " source folder", strict=True)
+
+        self.log.name("Checking if build modules dir exists: ")
+        for module in modules_list:
+            if module != "root":
+                self.tools.check_exists(
+                                    osp.join(build_base, module),
+                                    module + " build folder")
+
+        self.log.name("Checking for index templates: ")
+        for module in modules_list:
+            # root does not need an index template
+            if module != "root":
+                self.tools.check_exists(
+                              osp.join(source_base, module, "index.template"),
+                              "index.template for " + module,
+                              create=False)
+
+
+    def build_module(self, source_base, build_base, module, index_ignore_list, index_html, use_prefix, vars_list, template_list, modules_list, template_base, move_images, move_html):
+        self.log.name("Build module " + module + "...")
+
+        # Base dirs
+        if module == "root":
+            source_dir = source_base
+            build_dir  = build_base
+        else:
+            source_dir = osp.join(source_base, module)
+            build_dir  = osp.join(build_base, module)
+
+        self.log.name("Make index...")
+        if module not in index_ignore_list:
+            module_index = self.build_index(root_folder=source_base,
+                                            module_name=module,
+                                            index_html=index_html,
+                                            index_md=True,
+                                            PREFIX=use_prefix,
+                                            vars_list=vars_list)
+            if type(module_index) is str:
+                with open(osp.join(source_dir, "index.md"), "w") as index_out:
+                    index_out.write(module_index)
+                    self.log.log("Written index to " + osp.join(source_dir, "index.md") + "!")
+        else:
+            self.log.log(module + " is in index ignore list, skipping!")
+
+        self.log.name("Make pages...")
+        # Determine which template to use
+        if len(template_list) > 1:
+            using_template = modules_list.index(module)
+        else:
+            using_template = 0
+
+        # list pages
+        page_list = self.get_files(root_folder=source_base, ext="md", module=module)
+        template_name = template_list[using_template]
+        use_template = osp.join(template_base, template_name + ".html")
+        for name in page_list:
+            source_file = osp.join(source_dir, name)
+            build_file  = osp.join(build_dir, name.replace(".md",".html").replace(".MD",".html"))
+            directory_name = osp.dirname(build_file)
+            self.log.log("Building "+name+" with template "+template_name)
+            self.tools.check_exists(directory_name, directory_name, quiet=1)
+            with open(build_file, "w") as built:
+                doc = self.build_page(source_file=source_file, template_file=use_template, vars_list=vars_list)
+                built.write(doc)
+                self.log.log("Saved to "+build_file+"!")
+
+        if move_html:
+            ht_list = self.get_files(root_folder=source_base, ext="html", module=module)
+            self.log.name("Copying html files.")
+            if (len(ht_list) > 0):
+                for i in ht_list:
+                    target = osp.join(source_dir, i)
+                    ofile    = osp.join(build_dir, i)
+                    self.tools.check_exists(osp.dirname(ofile), osp.dirname(ofile), quiet=1)
+                    self.log.log(i+" -> "+ofile)
+                    shutil.copyfile(target, ofile)
+            else:
+                self.log.log("No html files to copy.")
+
+        if move_images:
+            im_list  = []
+            for i in self.img_support:
+                im_list += self.get_files(root_folder=source_base, ext=i, module=module)
+
+            self.log.name("Copying images.")
+            if (len(im_list) > 0):
+                for i in im_list:
+                    target = osp.join(source_dir, i)
+                    ofile    = osp.join(build_dir, i)
+                    self.tools.check_exists(osp.dirname(ofile),osp.dirname(ofile),quiet=1)
+                    self.log.log(i+" -> "+ofile)
+                    shutil.copyfile(target, ofile)
+            else:
+                self.log.log("No image files to copy.")
+
+
     def build_site(self, config=None, exclude=None, index_html=False, move_html=True, use_prefix=True, move_images=True):
         """ Generates a site based on a set configuration, explained in :obj:`Notes`.
 
@@ -335,37 +443,11 @@ class Wizard:
 
         # PRE-BUILD
         self.log.header("PRE-BUILD CHECKS", True)
-
-        # check sources
-        self.log.name("Checking if source modules dir exists: ")
-        for module in modules_list:
-            if module == "root":
-                self.tools.check_exists(
-                                    source_base,
-                                    "root sources", strict=True)
-            else:
-                self.tools.check_exists(
-                                    osp.join(source_base, module),
-                                    module + " source folder", strict=True)
-
-        self.log.name("Checking if build modules dir exists: ")
-        for module in modules_list:
-            if module != "root":
-                self.tools.check_exists(
-                                    osp.join(build_base, module),
-                                    module + " build folder")
-
-        self.log.name("Checking for index templates: ")
-        for module in modules_list:
-            # root does not need an index template
-            if module != "root":
-                self.tools.check_exists(
-                              osp.join(source_base, module, "index.template"),
-                              "index.template for " + module,
-                              create=False)
+        self.pre_build_checks(modules_list, source_base, build_base)
 
         # check templates, order doesn't matter
         # templates MUST be in HTML
+        # this should be part of above function
         try:
             for template in list(set(template_list)):
                 self.log.name("Checking if template file exists: " + template)
@@ -382,81 +464,7 @@ class Wizard:
         self.log.header("BUILD", True)
 
         for module in modules_list:
-            self.log.name("Build module " + module + "...")
-
-            # Base dirs
-            if module == "root":
-                source_dir = source_base
-                build_dir  = build_base
-            else:
-                source_dir = osp.join(source_base, module)
-                build_dir  = osp.join(build_base, module)
-
-            self.log.name("Make index...")
-            if module not in index_ignore_list:
-                module_index = self.build_index(root_folder=source_base,
-                                                module_name=module,
-                                                index_html=index_html,
-                                                index_md=True,
-                                                PREFIX=use_prefix,
-                                                vars_list=vars_list)
-                if type(module_index) is str:
-                    with open(osp.join(source_dir, "index.md"), "w") as index_out:
-                        index_out.write(module_index)
-                        self.log.log("Written index to " + osp.join(source_dir, "index.md") + "!")
-            else:
-                self.log.log(module + " is in index ignore list, skipping!")
-
-            self.log.name("Make pages...")
-            # Determine which template to use
-            if len(template_list) > 1:
-                using_template = modules_list.index(module)
-            else:
-                using_template = 0
-
-            # list pages
-            page_list = self.get_files(root_folder=source_base, ext="md", module=module)
-            template_name = template_list[using_template]
-            use_template = osp.join(template_base, template_name + ".html")
-            for name in page_list:
-                source_file = osp.join(source_dir, name)
-                build_file  = osp.join(build_dir, name.replace(".md",".html").replace(".MD",".html"))
-                directory_name = osp.dirname(build_file)
-                self.log.log("Building "+name+" with template "+template_name)
-                self.tools.check_exists(directory_name, directory_name, quiet=1)
-                with open(build_file, "w") as built:
-                    doc = self.build_page(source_file=source_file, template_file=use_template, vars_list=vars_list)
-                    built.write(doc)
-                    self.log.log("Saved to "+build_file+"!")
-
-            if move_html:
-                ht_list = self.get_files(root_folder=source_base, ext="html", module=module)
-                self.log.name("Copying html files.")
-                if (len(ht_list) > 0):
-                    for i in ht_list:
-                        target = osp.join(source_dir, i)
-                        ofile    = osp.join(build_dir, i)
-                        self.tools.check_exists(osp.dirname(ofile), osp.dirname(ofile), quiet=1)
-                        self.log.log(i+" -> "+ofile)
-                        shutil.copyfile(target, ofile)
-                else:
-                    self.log.log("No html files to copy.")
-
-            if move_images:
-                im_list  = []
-                for i in self.img_support:
-                    im_list += self.get_files(root_folder=source_base, ext=i, module=module)
-
-                self.log.name("Copying images.")
-                if (len(im_list) > 0):
-                    for i in im_list:
-                        target = osp.join(source_dir, i)
-                        ofile    = osp.join(build_dir, i)
-                        self.tools.check_exists(osp.dirname(ofile),osp.dirname(ofile),quiet=1)
-                        self.log.log(i+" -> "+ofile)
-                        shutil.copyfile(target, ofile)
-                else:
-                    self.log.log("No image files to copy.")
+            self.build_module(source_base, build_base, module, index_ignore_list, index_html, use_prefix, vars_list, template_list, modules_list, template_base, move_images, move_html)
 
         self.log.header("Build done!", False)
 

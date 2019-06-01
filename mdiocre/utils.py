@@ -19,6 +19,7 @@ class Utils:
         #: mdiocre.logger.Debug: The logger used by the object.
         self.db = logger
 
+
     def check_exists(self, directory, name, strict=False, create=True, is_file=False, quiet=0):
         """ Check whether or not a file or directory exists
 
@@ -79,7 +80,7 @@ class Utils:
             Returns:
                 str: The converted HTML string.
         """
-        
+
         # Using this way of working will not process variables AS the file is
         # read, but reads the ENTIRE file and sets the values in a variable
         # to the last occurence where the variable is set.
@@ -88,11 +89,12 @@ class Utils:
         #
         # And when a variable is set, it can only be changed in the next page
         # the converter (wizard.build_site) processes. Not exactly predictable.
-        
+
         converted = self.process_vars(markdown, var_list=var_list, set_var=True, file_name=file_name)
         converted = self.process_vars(converted, var_list=var_list, file_name=file_name)
         html = pd.convert_text(converted, 'html', format="markdown")
         return html
+
 
     def process_vars(self, text, set_var=False, var_list={}, file_name=None):
         """ Process variables in html/markdown text
@@ -172,42 +174,41 @@ class Utils:
         for entry in search:
             starts.append(entry.span()[0])
             ends.append(entry.span()[1])
-            matches.append(entry.group(0)[4:-3]) if set_var\
-       else matches.append(entry.group(0))
+            matches.append(entry.group(0)[4:-3]) if set_var else matches.append(entry.group(0))
 
         for start, end, match in zip(starts, ends, matches):
             final += (text[cursor:start])
 
             if set_var:
-                    var_name, value = match.split("=", 1)
-                    var_name = var_name.strip()             # delete begin and end spaces
-                    value = value.strip()
-                    # Assign quoted strings
-                    if validate_quotes(value):
-                        var_list[var_name] = value[1:-1]
-                    # Assign variables and operations
-                    else:
-                        if len(re.split(r',(?!.*")|,(?=\s*")',value)) > 1: # concat operation
-                            o = ""
-                            for x in re.split(r',(?!.*")|,(?=\s*")',value):
-                                if validate_quotes(x.strip()):
-                                    o += x.strip()[1:-1]
-                                else:
-                                    try:
-                                        o += var_list[x.strip()]
-                                    except KeyError:
-                                        o += x  # assume string...
-                                        self.db.warning(filename_warn+"Variable '"+x+"' does not exist, assuming it's a string...")
-                            var_list[var_name] = o
-                            self.db.log(filename_warn+"Assigned "+var_name+" to "+o+".")
-                        else:                       # simple assign operation
-                            try:
-                                var_list[var_name] = var_list[value]
-                            except KeyError:
-                                self.db.warning(filename_warn+"Failed assigning "+var_name+" to "+value+", assuming string!")
-                                var_list[var_name] = value.strip()
+                var_name, value = match.split("=", 1)
+                var_name = var_name.strip()             # delete begin and end spaces
+                value = value.strip()
+                # Assign quoted strings
+                if validate_quotes(value):
+                    var_list[var_name] = value[1:-1]
+                # Assign variables and operations
+                else:
+                    if len(re.split(r',(?!.*")|,(?=\s*")',value)) > 1: # concat operation
+                        o = ""
+                        for x in re.split(r',(?!.*")|,(?=\s*")',value):
+                            if validate_quotes(x.strip()):
+                                o += x.strip()[1:-1]
                             else:
-                                self.db.log(filename_warn+"Assigned '"+var_name+"' to "+value+".")
+                                try:
+                                    o += var_list[x.strip()]
+                                except KeyError:
+                                    o += x  # assume string...
+                                    self.db.warning(filename_warn+"Variable '"+x+"' does not exist, assuming it's a string...")
+                        var_list[var_name] = o
+                        self.db.log(filename_warn+"Assigned "+var_name+" to "+o+".")
+                    else:                       # simple assign operation
+                        try:
+                            var_list[var_name] = var_list[value]
+                        except KeyError:
+                            self.db.warning(filename_warn+"Failed assigning "+var_name+" to "+value+", assuming string!")
+                            var_list[var_name] = value.strip()
+                        else:
+                            self.db.log(filename_warn+"Assigned '"+var_name+"' to "+value+".")
             else:
                 try:
                     var_name = match[8:-3]
@@ -217,7 +218,9 @@ class Utils:
                 else:
                     #self.db.log("Contents of variable'"+var_name+"' in "+str(cursor))
                     pass
+
             # Everything else will just be ignored and rendered as regular HTML
             cursor = end
+
         final += (text[cursor:])
         return final

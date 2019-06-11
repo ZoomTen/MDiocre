@@ -101,7 +101,7 @@ Simply sets `hello` to `test message`.
 ```
 <!--hello=lemons-->
 ```
-If `lemons` is `1` then `hello` will also be `1`. Otherwise, `hello` will contain the string `lemons`.
+If `lemons` is `1` then `hello` will also be `1`. If `lemons` is not set, `hello` will contain the string `lemons`.
 
 **Concatenating two or more variables**
 ```

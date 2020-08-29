@@ -1,6 +1,0 @@
-Technical Info
-==============
-.. toctree::
-   :glob:
-   
-   *

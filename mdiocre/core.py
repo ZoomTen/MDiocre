@@ -190,7 +190,7 @@ class VariableManager():
 			raise SyntaxError('<{}> is not an assign statement'.format(query))
 		
 		# query expected to be "variable = value"
-		ident, value = query.split('=')
+		ident, value = query.split('=', 1)
 		ident = ident.strip()
 		value = value.strip()
 		

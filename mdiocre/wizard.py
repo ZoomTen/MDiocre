@@ -36,6 +36,7 @@ class Wizard():
 		md_template_string = variables.get('mdiocre_template')
 		
 		if md_template_string != '':
+			# XXX: templates are only HTML
 			if md_template_string.lower()[-5:] == '.html':
 				return True
 		return False
@@ -146,8 +147,10 @@ class Wizard():
 				
 				# markdown file ending in .md -> html
 				# needs a template file ending in .html
+				# XXX: MDiocre-parsable source format
 				if f.lower()[-3:] == '.md':
 					# new target file name
+					# XXX: generate are only HTML
 					convert_file = target_file[:-3] + '.html'
 					
 					# process file

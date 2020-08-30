@@ -50,7 +50,7 @@ class MDiocre():
 		Renders a template with the specified variables.
 		
 		Due to the mechanism, template variables are separate from the
-		page's variables, usually defined in "content".
+		page's variables, usually defined in the ``content`` variable.
 		
 		Args:
 		    template (string): An HTML string.
@@ -67,6 +67,7 @@ class MDiocre():
 		def render_sub_func(match):
 			return self.sub_func(match, variables)
 		
+		# XXX: comment format necessary to parse MDiocre variables
 		# template variables are processed separately since
 		# the content is already proecessed
 		converted = re.sub(r'<!--:(.+)-->', render_sub_func, template)
@@ -90,7 +91,7 @@ class MDiocre():
 		
 		Returns:
 		    A VariableManager object containing the processed variables,
-		    that also contains the converted HTML under the "content"
+		    that also contains the converted HTML under the ``content``
 		    variable.
 		'''
 		# type checking
@@ -102,10 +103,12 @@ class MDiocre():
 		def conv_sub_func(match):
 			return self.sub_func(match, v)
 		
+		# XXX: comment format necessary to parse MDiocre variables
 		# process comments and search for special html comments
 		markdown = re.sub(r'<!--:(.+)-->', conv_sub_func, markdown)
 		
 		if not ignore_content:
+			# XXX: main document converter
 			md_parser = Markdown()
 			converted = md_parser.convert(markdown)
 			# content: a special variable containing the converted html
@@ -125,6 +128,9 @@ class VariableManager():
 	    There are a few reserved variables, which their names cannot be used, namely:
 	        * **content** : The contents of a page that will be put into a template
 	        * **mdiocre-gen-timestamp** : Timestamp of the generated content
+	
+	.. note::
+	    The ``mdiocre-template`` variable is required when using the :class:`Wizard`.
 	'''
 	
 	def __init__(self):
@@ -157,12 +163,20 @@ class VariableManager():
 		'''
 		Assigns a variable to a value.
 		
+		The variable name has almost no limitations (especially not
+		limitations usually posed by a programming language), but it is
+		terminated by the `=` symbol.
+		
 		The value can be one of the following:
 		    * **String** : if the value has quotes (single or double) around it.
+		          Example query: ``My Variable = "Toast"``
 		    * **Concatenation** : if two or more variable names are specified, with a comma separating each.
+		          Example query: ``My Variable = Var 1, Var 2``
 		    * **Math expression** : if the value is in the form of a simple math expression e.g. `1 * 2 + 3`
+		          Example query: ``My Variable = 1 + 4 * 7 + 4 * 0``
 		    * **Value assignment** : if the value is a variable name. This is assumed to be the default. Will assign
 		      to an empty string if the variable is not found.
+		          Example query: ``My Variable = Something else``
 		
 		Args:
 		    query (string): Expects a form of `variable = value`.

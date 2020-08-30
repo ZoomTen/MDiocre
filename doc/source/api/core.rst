@@ -1,5 +1,5 @@
-Core API
-========
+Core
+====
 
 MDiocre
 -------

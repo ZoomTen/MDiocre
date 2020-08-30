@@ -10,7 +10,7 @@ def declare(var_, type_):
 	
 	Args:
 	    var_ : The contents to check.
-	    type_ (class) : A class type to check for
+	    type_ (class) : A class type to check for.
 	'''
 	if not type(type_) == type:
 		raise TypeError('type_ to check must be a class')
@@ -19,7 +19,7 @@ def declare(var_, type_):
 
 def has_color():
 	'''
-	Borrowed from the Django project.
+	Borrowed from the `Django <https://github.com/django/django>`_ project.
 	
 	Returns:
 	    True if the running system's terminal supports color, and False
@@ -43,6 +43,7 @@ class Logger():
 		Args:
 		    level (int) : How much to indent
 		    severity (str): Severity of the log. These can be:
+		    
 		        * ``info`` : Default terminal color.
 		        * ``serious`` : Red.
 		        * ``warning`` : Yellow.
@@ -71,8 +72,7 @@ class Logger():
 		Convenience function to :meth:`print`, only that it outputs
 		to stderr instead of stdout.
 		
-		Args:
-		    See :meth:`print`.
+		Args: See :meth:`print`.
 		
 		Returns:
 		    See :meth:`print`.

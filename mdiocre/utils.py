@@ -36,6 +36,11 @@ class Logger():
 	A color-enabled logger object.
 	'''
 	
+	quiet = False
+	
+	def set_quiet(self, quiet):
+		self.quiet = quiet
+	
 	def print(self, *args, level=0, severity='info', **kwargs):
 		'''
 		Color and log enabled print function.
@@ -51,21 +56,22 @@ class Logger():
 		Returns:
 		     None.
 		'''
-		color_enable = has_color()
-		if color_enable:
-			if severity=='info':
-				print('\033[0m', end='', **kwargs)
-			elif severity=='serious':
-				print('\033[31m', end='', **kwargs)
-			elif severity=='warning':
-				print('\033[33m', end='', **kwargs)
-		
-		print(''.join(['    '*int(level), '...', *args]), end='', **kwargs)
-		
-		if color_enable:
-			print('\033[0m', **kwargs)
-		else:
-			print('', **kwargs)
+		if not self.quiet:
+			color_enable = has_color()
+			if color_enable:
+				if severity=='info':
+					print('\033[0m', end='', **kwargs)
+				elif severity=='serious':
+					print('\033[31m', end='', **kwargs)
+				elif severity=='warning':
+					print('\033[33m', end='', **kwargs)
+			
+			print(''.join(['    '*int(level), '...', *args]), end='', **kwargs)
+			
+			if color_enable:
+				print('\033[0m', **kwargs)
+			else:
+				print('', **kwargs)
 
 	def eprint(self, *args, level=0, severity='info', **kwargs):
 		'''

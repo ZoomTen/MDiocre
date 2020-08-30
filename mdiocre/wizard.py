@@ -12,8 +12,8 @@ l = Logger()
 m = MDiocre()
 
 class Wizard():
-	def __init__(self):
-		pass
+	def __init__(self, quiet=False):
+		l.set_quiet(quiet)
 	
 	def is_mdiocre_string(self, md_string):
 		'''

@@ -2,6 +2,10 @@ from markdown import Markdown
 import re
 import datetime
 
+def declare(var_, type_):
+	if not isinstance(var_, type_):
+		raise TypeError('passed variable must be {} (is instead {})'.format('.'.join([type_.__module__, type_.__name__]), var_.__class__.__name__))
+	
 class MDiocre():
 	'''
 	Main class to process Markdown source files and render HTML files.
@@ -25,11 +29,19 @@ class MDiocre():
 		    Otherwise, it attempts to display the value of the variable
 		    described, by running it through :meth:`VariableManager.get`.
 		'''
+		# type checking
+		declare(match, re.Match)
+		declare(v, VariableManager)
+		
 		statement = match.groups()[0]
-		if(re.match(r'.+=.+', statement)):
+		
+		try:
+			# variable = value
 			v.assign(statement)
 			return ''
-		else:
+		except SyntaxError:
+			# if it isn't an assign statement,
+			# get the variable name instead
 			return v.get(statement)
 	
 	def render(self, template, variables):
@@ -47,6 +59,10 @@ class MDiocre():
 		Returns:
 		    String containing the processed HTML.
 		'''
+		# type checking
+		declare(template, str)
+		declare(variables, VariableManager)
+		
 		def render_sub_func(match):
 			return self.sub_func(match, variables)
 		
@@ -57,7 +73,7 @@ class MDiocre():
 		return converted
 		
 	
-	def process(self, markdown):
+	def process(self, markdown, ignore_content=False):
 		'''
 		Process a Markdown string into a variable dictionary to use
 		e.g. with :meth:`render`.
@@ -68,12 +84,17 @@ class MDiocre():
 		
 		Args:
 		    markdown (string): A Markdown string.
+		    ignore_content (bool, Optional): 
 		
 		Returns:
 		    A VariableManager object containing the processed variables,
 		    that also contains the converted HTML under the "content"
 		    variable.
 		'''
+		# type checking
+		declare(markdown, str)
+		declare(ignore_content, bool)
+		
 		md_parser = Markdown()
 		
 		v = VariableManager()
@@ -123,6 +144,9 @@ class VariableManager():
 		    String contents of the variable, or an empty string if the
 		    variable is not found.
 		'''
+		# type checking
+		declare(variable, str)
+		
 		try:
 			return str(self.variables[variable])
 		except KeyError:
@@ -145,6 +169,11 @@ class VariableManager():
 		Returns:
 		    Depends on the assigned value.
 		'''
+		# type checking
+		declare(query, str)
+		if not (re.match(r'.+=.+', query)):
+			raise SyntaxError('<{}> is not an assign statement'.format(query))
+		
 		# query expected to be "variable = value"
 		ident, value = query.split('=')
 		ident = ident.strip()

@@ -1,11 +1,12 @@
+from .utils import declare
 from markdown import Markdown
 import re
 import datetime
 
-def declare(var_, type_):
-	if not isinstance(var_, type_):
-		raise TypeError('passed variable must be {} (is instead {})'.format('.'.join([type_.__module__, type_.__name__]), var_.__class__.__name__))
-	
+'''
+Core MDiocre conversion class
+'''
+
 class MDiocre():
 	'''
 	Main class to process Markdown source files and render HTML files.
@@ -84,7 +85,8 @@ class MDiocre():
 		
 		Args:
 		    markdown (string): A Markdown string.
-		    ignore_content (bool, Optional): 
+		    ignore_content (bool, Optional): If True, it will not convert
+		        the Markdown, rather it would only process the variables
 		
 		Returns:
 		    A VariableManager object containing the processed variables,
@@ -95,8 +97,6 @@ class MDiocre():
 		declare(markdown, str)
 		declare(ignore_content, bool)
 		
-		md_parser = Markdown()
-		
 		v = VariableManager()
 		
 		def conv_sub_func(match):
@@ -105,10 +105,11 @@ class MDiocre():
 		# process comments and search for special html comments
 		markdown = re.sub(r'<!--:(.+)-->', conv_sub_func, markdown)
 		
-		converted = md_parser.convert(markdown)
-		
-		# content: a special variable containing the converted html
-		v.variables["content"] = converted
+		if not ignore_content:
+			md_parser = Markdown()
+			converted = md_parser.convert(markdown)
+			# content: a special variable containing the converted html
+			v.variables["content"] = converted
 		
 		return v
 

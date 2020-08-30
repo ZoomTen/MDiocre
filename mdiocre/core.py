@@ -7,6 +7,10 @@ import datetime
 Core MDiocre conversion class
 '''
 
+RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
+RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
+RE_ASSIGNMENT = re.compile(r'.+=.+')
+
 class MDiocre():
 	'''
 	Main class to process Markdown source files and render HTML files.
@@ -53,12 +57,12 @@ class MDiocre():
 		page's variables, usually defined in the ``content`` variable.
 		
 		Args:
-		    template (string): An HTML string.
+		    template (string): A string containing HTML comments.
 		    variables (VariableManager): Variable object to use with
 		        the template.
 		
 		Returns:
-		    String containing the processed HTML.
+		    The processed string.
 		'''
 		# type checking
 		declare(template, str)
@@ -70,7 +74,7 @@ class MDiocre():
 		# XXX: comment format necessary to parse MDiocre variables
 		# template variables are processed separately since
 		# the content is already proecessed
-		converted = re.sub(r'<!--:(.+)-->', render_sub_func, template)
+		converted = re.sub(RE_HTML_COMMENTS, render_sub_func, template)
 		
 		return converted
 		
@@ -85,7 +89,7 @@ class MDiocre():
 		process can be found in :class:`VariableManager`.
 		
 		Args:
-		    markdown (string): A Markdown string.
+		    markdown (string): A string containing HTML comments.
 		    ignore_content (bool, Optional): If True, it will not convert
 		        the Markdown, rather it would only process the variables
 		
@@ -105,7 +109,7 @@ class MDiocre():
 		
 		# XXX: comment format necessary to parse MDiocre variables
 		# process comments and search for special html comments
-		markdown = re.sub(r'<!--:(.+)-->', conv_sub_func, markdown)
+		markdown = re.sub(RE_HTML_COMMENTS, conv_sub_func, markdown)
 		
 		if not ignore_content:
 			# XXX: main document converter
@@ -186,15 +190,13 @@ class VariableManager():
 		'''
 		# type checking
 		declare(query, str)
-		if not (re.match(r'.+=.+', query)):
+		if not (re.match(RE_ASSIGNMENT, query)):
 			raise SyntaxError('<{}> is not an assign statement'.format(query))
 		
 		# query expected to be "variable = value"
 		ident, value = query.split('=', 1)
 		ident = ident.strip()
 		value = value.strip()
-		
-		RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 		
 		# check valid identifier
 		if ident in self.reserved_variable_names:

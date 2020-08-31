@@ -6,14 +6,16 @@
 MDiocre Documentation
 =====================
 
+Users
+-----
 .. toctree::
    :maxdepth: 2
-   :numbered:
-   
-   api/index
+
    user/index
 
-Indices and tables
-==================
+Developers
+----------
+.. toctree::
+   :maxdepth: 2
 
-* :ref:`genindex`
+   api/index

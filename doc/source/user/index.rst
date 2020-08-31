@@ -4,4 +4,8 @@ User Guide
 .. toctree::
    :maxdepth: 2
    
-   page01
+   what_to_know
+   quickstart
+   templates
+   variables
+   wizard

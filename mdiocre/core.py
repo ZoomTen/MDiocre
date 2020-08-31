@@ -10,6 +10,8 @@ Core MDiocre conversion class
 RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
 RE_ASSIGNMENT = re.compile(r'.+=.+')
+RE_CONCAT = re.compile(r'(.+?)[^\\],|(.+?)$')
+RE_ESCAPE = re.compile(r'(\\)(.{1})')
 
 class MDiocre():
 	'''
@@ -120,6 +122,25 @@ class MDiocre():
 		
 		return v
 
+def remove_inner_outer_quotes(string):
+	if string[0] == '"':
+		if not (string[-1] == '"'):
+			raise SyntaxError('assignment <{}>: no matching end "'.format(string))
+		string = string.strip('"')
+	elif string[0] == "'":
+		if not (string[-1] == "'"):
+			raise SyntaxError("assignment <{}>: no matching end '".format(string))
+		string = string.strip("'")
+	elif string[-1] == '"':
+		if not (string[0] == '"'):
+			raise SyntaxError('assignment <{}>: no matching beginning "'.format(string))
+		string = string.strip('"')
+	elif string[-1] == "'":
+		if not (string[0] == "'"):
+			raise SyntaxError("assignment <{}>: no matching beginning '".format(string))
+		string = string.strip("'")
+	return string
+	
 class VariableManager():
 	'''
 	Variable manager.
@@ -158,6 +179,8 @@ class VariableManager():
 		# type checking
 		declare(variable, str)
 		
+		variable = variable.strip()
+		
 		try:
 			return str(self.variables[variable])
 		except KeyError:
@@ -183,10 +206,11 @@ class VariableManager():
 		          Example query: ``My Variable = Something else``
 		
 		Args:
-		    query (string): Expects a form of `variable = value`.
+		    query (string): Expects a string in the form of ``variable = value``.
 		
 		Returns:
-		    Depends on the assigned value.
+		    None (or SyntaxError). If the variable is successfully assigned, its
+                    value will be added to the object's ``variables`` dictionary.
 		'''
 		# type checking
 		declare(query, str)
@@ -201,43 +225,48 @@ class VariableManager():
 		# check valid identifier
 		if ident in self.reserved_variable_names:
 			raise SyntaxError('assignment <{}>: variable name "{}" cannot be used!'.format(query, ident))
-		# check for string type, so check outer quotes
-		if value[0] == '"':
-			if not (value[-1] == '"'):
-				raise SyntaxError('assignment <{}>: no matching end "'.format(query))
-			value = value.strip('"')
-		elif value[0] == "'":
-			if not (value[-1] == "'"):
-				raise SyntaxError("assignment <{}>: no matching end '".format(query))
-			value = value.strip("'")
-		elif value[-1] == '"':
-			if not (value[0] == '"'):
-				raise SyntaxError('assignment <{}>: no matching beginning "'.format(query))
-			value = value.strip('"')
-		elif value[-1] == "'":
-			if not (value[0] == "'"):
-				raise SyntaxError("assignment <{}>: no matching beginning '".format(query))
-			value = value.strip("'")
-		# if not, check for concatenation
-		elif len(value.split(',')) > 1:
-			concat_vars = [var.strip() for var in value.split(',')]
-			try:
-				value = ''.join([self.variables[var] for var in concat_vars])
-			except KeyError:
-				value = ''
-		# if not, do some maths
-		elif re.match(RE_MATH, value):
+		
+		# do some maths
+		if re.match(RE_MATH, value):
 			# we don't yet accept parentheses
 			p = re.match(RE_MATH, value)
 			
 			# yiiiiiiiiiiiiikes
 			value = str(eval(value))
-		# if not, assume it's a whole variable
+		# if not, assume concat
 		else:
-			try:
-				value = self.variables[value]
-			except KeyError:
-				value = ''
+			concat_vars = []
+			
+			concat_tokens = re.findall(RE_CONCAT, value)
+			
+			# add each token to concat_vars
+			# you get pairs like ('', '', 'lol')
+			# due to the regex
+			for token in concat_tokens:
+				for el in token:
+					if el != '':
+						# remove whitespace from each token
+						el = el.strip()
+						concat_vars.append(el)
+			
+			# start with a blank value
+			value = ''
+			for var in concat_vars:
+				# append each token according to the order
+				# they appear
+				if var[0] == '"' or var[0] == "'":
+					value += remove_inner_outer_quotes(var)
+					
+					# render all escaped characters
+					def escape(match):
+						return match.groups()[1]
+					
+					value = re.sub(RE_ESCAPE, escape, value)
+				else:
+					try:
+						value += self.variables[var]
+					except KeyError:
+						value += ''
 		
 		self.variables[ident] = value
 

@@ -52,6 +52,7 @@ class Logger():
 		        * ``info`` : Default terminal color.
 		        * ``serious`` : Red.
 		        * ``warning`` : Yellow.
+		        * ``ok`` : Green.
 		
 		Returns:
 		     None.
@@ -59,12 +60,14 @@ class Logger():
 		if not self.quiet:
 			color_enable = has_color()
 			if color_enable:
-				if severity=='info':
-					print('\033[0m', end='', **kwargs)
-				elif severity=='serious':
+				if severity=='serious':
 					print('\033[31m', end='', **kwargs)
 				elif severity=='warning':
 					print('\033[33m', end='', **kwargs)
+				elif severity=='ok':
+					print('\033[32m', end='', **kwargs)
+				else:
+					print('\033[0m', end='', **kwargs)
 			
 			print(''.join(['    '*int(level), '...', *args]), end='', **kwargs)
 			
@@ -78,9 +81,16 @@ class Logger():
 		Convenience function to :meth:`print`, only that it outputs
 		to stderr instead of stdout.
 		
-		Args: See :meth:`print`.
+		Args:
+		    level (int) : How much to indent
+		    severity (str): Severity of the log. These can be:
+		    
+		        * ``info`` : Default terminal color.
+		        * ``serious`` : Red.
+		        * ``warning`` : Yellow.
+		        * ``ok`` : Green.
 		
 		Returns:
-		    See :meth:`print`.
+		     None.
 		'''
 		return self.print(self, *args, level=level, severity=severity, file=sys.stderr, **kwargs)

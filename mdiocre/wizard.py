@@ -21,8 +21,7 @@ class Wizard():
 		markdown.
 		
 		The only criteria currently needed for this is whether or not
-		it contains a ``mdiocre_template`` variable, and whether or
-		not that ends in ``.html``.
+		it contains a ``mdiocre-template`` variable.
 		
 		Args:
 		    md_string(string): The markdown-formatted text to validate.
@@ -33,11 +32,11 @@ class Wizard():
 		'''
 		variables = m.process(md_string, ignore_content=True)
 		
-		md_template_string = variables.get('mdiocre_template')
+		md_template_string = variables.get('mdiocre-template')
 		
 		if md_template_string != '':
 			# XXX: templates are only HTML
-			if md_template_string.lower()[-5:] == '.html':
+			# if md_template_string.lower()[-5:] == '.html':
 				return True
 		return False
 	
@@ -51,7 +50,7 @@ class Wizard():
 		The HTML template itself is obtained from the presence of the
 		``mdiocre_template`` variable, which simply contains the path
 		of the template file relative to the ``root`` set here. Which is
-		why the ``mdiocre_template`` variable must be present for the
+		why the ``mdiocre-template`` variable must be present for the
 		markdown to be considered convertable by MDiocre.
 		
 		Args:
@@ -68,7 +67,7 @@ class Wizard():
 			template_file = os.path.abspath(
 						os.path.sep.join([
 							root,
-							variables.get('mdiocre_template')
+							variables.get('mdiocre-template')
 						])
 					)
 			
@@ -89,17 +88,17 @@ class Wizard():
 		Generates pages based on the directory it is supplied through
 		`args`.
 		
-		This function looks at the files inside ``source_dir`` recursively
+		This function looks at the files inside the `args`' ``source_dir`` path recursively
 		and copies the files to ``build_dir``, or generates a page if it
-		is a markdown file.
+                is a MDiocre file (see :meth:`is_mdiocre_string`).
 		
 		In order to generate pages, it needs a template. The template
-		directory is supplied through the ``mdiocre_template`` variable,
+		file is supplied through each file's ``mdiocre-template`` variable,
 		and it is relative to ``source_dir``.
 		
 		Args:
 		    args (dict): A dictionary containing arguments for this
-		        function. It should have the following keys:
+		        function. It must have the following keys:
 		        ``source_dir`` and ``build_dir``.
 		
 		Returns:
@@ -116,7 +115,7 @@ class Wizard():
 		source_parent, source_folder = os.path.split(source_dir)
 		
 		# process files from the source directory
-		for path, folders, files in (os.walk(source_dir)):
+		for path, folders, files in (os.walk(source_dir, followlinks=True)):
 			parent_path, path_folder = os.path.split(path)
 			
 			if parent_path == source_parent:
@@ -166,7 +165,7 @@ class Wizard():
 							l.print('(OVERWRITING {})'.format(os.path.split(convert_file)[1]),
 								level=1, severity='serious')
 						l.print('{} is a MDiocre file, writing {}'.format(f, os.path.split(convert_file)[1]),
-							level=1)
+							level=1, severity='ok')
 						with open(convert_file, 'w') as rendered:
 							rendered.write(conv_md)
 					else:

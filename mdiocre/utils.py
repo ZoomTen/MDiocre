@@ -32,6 +32,16 @@ def has_color():
 	return supported_platform and is_a_tty
 
 def remove_inner_outer_quotes(string):
+	'''
+	Remove any quotes around the text, with additional checking
+	
+	Args:
+	    string (string): Text with quotes.
+	
+	Returns:
+	    Text with removed quotes. Raises `SyntaxError` when there is no
+	    matching quotes.
+	'''
 	if string[0] == '"':
 		if not (string[-1] == '"'):
 			raise SyntaxError('assignment <{}>: no matching end "'.format(string))

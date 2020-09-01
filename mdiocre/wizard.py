@@ -9,11 +9,11 @@ Automatic page generation tools that require manipulating the file system
 '''
 
 l = Logger()
-m = MDiocre()
 
 class Wizard():
 	def __init__(self, quiet=False):
 		l.set_quiet(quiet)
+		self.m = MDiocre()
 	
 	def is_mdiocre_string(self, md_string):
 		'''
@@ -30,7 +30,7 @@ class Wizard():
 		    True if it is a valid string, False otherwise.
 		
 		'''
-		variables = m.process(md_string, ignore_content=True)
+		variables = self.m.process(md_string, ignore_content=True)
 		
 		md_template_string = variables.get('mdiocre-template')
 		
@@ -62,7 +62,7 @@ class Wizard():
 		    it cannot find the template file, it will return an empty string.
 		'''
 		if self.is_mdiocre_string(md_string):
-			variables = m.process(md_string)
+			variables = self.m.process(md_string)
 			
 			template_file = os.path.abspath(
 						os.path.sep.join([
@@ -74,7 +74,7 @@ class Wizard():
 			if os.path.exists(template_file):
 				with open(template_file, 'r') as tf:
 					template = tf.read()
-					return m.render(template, variables)
+					return self.m.render(template, variables)
 			else:
 				return ''
 		else:
@@ -148,6 +148,7 @@ class Wizard():
 				# needs a template file ending in .html
 				# XXX: MDiocre-parsable source format
 				if f.lower()[-3:] == '.md':
+					self.m.switch_parser("markdown")
 					# new target file name
 					# XXX: generate are only HTML
 					convert_file = target_file[:-3] + '.html'

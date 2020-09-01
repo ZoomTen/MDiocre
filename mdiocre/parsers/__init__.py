@@ -2,9 +2,6 @@ def sub_func(match, v):
 	'''
 	Substitution function for use with `re.sub`.
 
-	In MDiocre 3.0, this was used in nested form in :meth:`render`
-	and :meth:`process`. Might be removed in 4.0.
-
 	Args:
 	    match (re.Match): object containing the string to be processed.
 	    v (VariableManager): target variable manager object

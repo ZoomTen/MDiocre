@@ -32,6 +32,8 @@ class MDiocre():
 			else:
 				self.switch_parser(parser_name)
 		else:
+			if not issubclass(parser, BaseParser):
+				raise ImportError("class {} must be a subclass of {}".format(parser.__name__, BaseParser.__name__)) from None
 			self.parser = parser
 	
 	def switch_parser(self, name):

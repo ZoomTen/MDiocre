@@ -31,6 +31,25 @@ def has_color():
 	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
 	return supported_platform and is_a_tty
 
+def remove_inner_outer_quotes(string):
+	if string[0] == '"':
+		if not (string[-1] == '"'):
+			raise SyntaxError('assignment <{}>: no matching end "'.format(string))
+		string = string.strip('"')
+	elif string[0] == "'":
+		if not (string[-1] == "'"):
+			raise SyntaxError("assignment <{}>: no matching end '".format(string))
+		string = string.strip("'")
+	elif string[-1] == '"':
+		if not (string[0] == '"'):
+			raise SyntaxError('assignment <{}>: no matching beginning "'.format(string))
+		string = string.strip('"')
+	elif string[-1] == "'":
+		if not (string[0] == "'"):
+			raise SyntaxError("assignment <{}>: no matching beginning '".format(string))
+		string = string.strip("'")
+	return string
+
 class Logger():
 	'''
 	A color-enabled logger object.

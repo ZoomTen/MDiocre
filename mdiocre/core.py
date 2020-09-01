@@ -1,4 +1,4 @@
-from .utils import declare
+from .utils import declare, remove_inner_outer_quotes
 from .parsers import BaseParser, sub_func
 import re
 import datetime
@@ -129,25 +129,6 @@ class MDiocre():
 		v = VariableManager()
 		
 		return self.parser.to_variables(string, v, ignore_content=ignore_content)
-
-def remove_inner_outer_quotes(string):
-	if string[0] == '"':
-		if not (string[-1] == '"'):
-			raise SyntaxError('assignment <{}>: no matching end "'.format(string))
-		string = string.strip('"')
-	elif string[0] == "'":
-		if not (string[-1] == "'"):
-			raise SyntaxError("assignment <{}>: no matching end '".format(string))
-		string = string.strip("'")
-	elif string[-1] == '"':
-		if not (string[0] == '"'):
-			raise SyntaxError('assignment <{}>: no matching beginning "'.format(string))
-		string = string.strip('"')
-	elif string[-1] == "'":
-		if not (string[0] == "'"):
-			raise SyntaxError("assignment <{}>: no matching beginning '".format(string))
-		string = string.strip("'")
-	return string
 	
 class VariableManager():
 	'''

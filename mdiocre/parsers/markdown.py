@@ -1,0 +1,22 @@
+# fallback
+
+import re
+from . import BaseParser, sub_func
+from markdown import Markdown
+
+class MarkdownParser(BaseParser):
+
+	RE_COMMENTS = re.compile(r'<!--:(.+?)-->')
+	
+	def to_variables(self, markdown, v, ignore_content=False):
+		def conv_sub_func(match):
+			return sub_func(match, v)
+		
+		markdown = re.sub(self.RE_COMMENTS, conv_sub_func, markdown)
+		
+		html = Markdown().convert(markdown)
+		
+		if not ignore_content:
+			v.variables["content"] = html
+		
+		return v

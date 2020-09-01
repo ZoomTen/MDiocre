@@ -1,14 +1,14 @@
 from .utils import declare
-from markdown import Markdown
+from .parsers import BaseParser, sub_func
 import re
 import datetime
-
+from importlib import import_module
 '''
 Core MDiocre conversion class
 '''
 
-RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
+RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_ASSIGNMENT = re.compile(r'.+=.+')
 RE_CONCAT = re.compile(r'(.+?)[^\\],|(.+?)$')
 RE_ESCAPE = re.compile(r'(\\)(.{1})')
@@ -16,50 +16,67 @@ RE_ESCAPE = re.compile(r'(\\)(.{1})')
 class MDiocre():
 	'''
 	Main class to process Markdown source files and render HTML files.
+	
+	Args:
+	    parser (Optional): a BaseParser-derived object. If both
+	        `parser_name` and `parser` are defined, `parser` takes the
+	        priority.
+	    parser_name (Optional): The parser name. See :meth:`switch_parser`
+	        for which ones are currently implemented.
 	'''
-	def __init__(self):
-		pass
+	def __init__(self, parser=None, parser_name=None):
+		if parser is None:
+			if parser_name is None:
+				# use markdown by default
+				self.switch_parser("markdown")
+			else:
+				self.switch_parser(parser_name)
+		else:
+			self.parser = parser
+	
+	def switch_parser(self, name):
+		'''
+		Switch parsers by using an identifier. To implement a
+		new parser, it must be a class with inherited from
+		:class:`BaseParser`, Its name and file name must also
+		match, e.g. a parser with the `html` identifier must
+		be in `html.py` and have the class name of `HtmlParser`.
+		
+		Args:
+		    name (string): Parser name. Currently implemented:
+		        `markdown`, `html`, `rst`
+		
+		Returns:
+		    None.
+		'''
+		# Postulations for names
+		module_name = '.parsers.{}'.format(name.lower())
+		class_name  = '{}Parser'.format(name.capitalize())
+		# Switch parser
+		module = import_module(module_name, 'mdiocre')
+		module_class = getattr(module,class_name)
+		if not issubclass(module_class, BaseParser):
+			raise ImportError("class {} must be a subclass of {}".format(class_name, BaseParser.__name__)) from None
+		self.parser = module_class()
 	
 	def sub_func(self, match, v):
 		'''
-		Substitution function for use with `re.sub`.
-		
-		This is used in nested form in :meth:`render` and :meth:`process`.
-		
-		Args:
-		    match (re.Match): object containing the string to be processed.
-		    v (VariableManager): target variable manager object
-		
-		Returns:
-		    If the string is in the form `variable = something`, it will
-		    return a blank string, but stores the new value within `v.variables`.
-		    Otherwise, it attempts to display the value of the variable
-		    described, by running it through :meth:`VariableManager.get`.
+		Moved to :meth:`mdiocre.parsers.sub_func`. Will remove in
+		MDiocre 3.2.
 		'''
-		# type checking
-		declare(match, re.Match)
-		declare(v, VariableManager)
-		
-		statement = match.groups()[0]
-		
-		try:
-			# variable = value
-			v.assign(statement)
-			return ''
-		except SyntaxError:
-			# if it isn't an assign statement,
-			# get the variable name instead
-			return v.get(statement)
+		return sub_func(match, v)
 	
 	def render(self, template, variables):
 		'''
 		Renders a template with the specified variables.
 		
 		Due to the mechanism, template variables are separate from the
-		page's variables, usually defined in the ``content`` variable.
+		page's variables. The converted page is defined in the
+		``content`` variable, and can be used by templates to render
+		the documents.
 		
 		Args:
-		    template (string): A string containing HTML comments.
+		    template (string): A string containing formatted comments.
 		    variables (VariableManager): Variable object to use with
 		        the template.
 		
@@ -71,56 +88,47 @@ class MDiocre():
 		declare(variables, VariableManager)
 		
 		def render_sub_func(match):
-			return self.sub_func(match, variables)
+			return sub_func(match, variables)
 		
-		# XXX: comment format necessary to parse MDiocre variables
+		# TODO: implement the same parser as process
 		# template variables are processed separately since
 		# the content is already proecessed
 		converted = re.sub(RE_HTML_COMMENTS, render_sub_func, template)
 		
 		return converted
 		
-	
-	def process(self, markdown, ignore_content=False):
+	def process(self, string, ignore_content=False):
 		'''
-		Process a Markdown string into a variable dictionary to use
+		Process a string into a variable dictionary to use
 		e.g. with :meth:`render`.
 		
-		Variables are processed by grabbing special HTML comments
-		which start with ``<!--:`` More details about the conversion
-		process can be found in :class:`VariableManager`.
+		The string is processed according to
+		a parser that converts it to HTML and extracts any MDiocre
+		"commands". For Markdown and HTML, these are stuff that is
+		prefixed with `<!--:`, for RST, it's `:mdiocre:`.
+		
+		More details about the conversion process can be found in
+		:class:`VariableManager`.
+		
+		As of 3.1, this is really a wrapper for all the parsers.
 		
 		Args:
-		    markdown (string): A string containing HTML comments.
+		    string (string): A string containing MDiocre commands.
 		    ignore_content (bool, Optional): If True, it will not convert
-		        the Markdown, rather it would only process the variables
+		        the string to the `content` variable.
 		
 		Returns:
 		    A VariableManager object containing the processed variables,
 		    that also contains the converted HTML under the ``content``
-		    variable.
+		    variable, if `ignore_content` is `False`.
 		'''
 		# type checking
-		declare(markdown, str)
+		declare(string, str)
 		declare(ignore_content, bool)
 		
 		v = VariableManager()
 		
-		def conv_sub_func(match):
-			return self.sub_func(match, v)
-		
-		# XXX: comment format necessary to parse MDiocre variables
-		# process comments and search for special html comments
-		markdown = re.sub(RE_HTML_COMMENTS, conv_sub_func, markdown)
-		
-		if not ignore_content:
-			# XXX: main document converter
-			md_parser = Markdown()
-			converted = md_parser.convert(markdown)
-			# content: a special variable containing the converted html
-			v.variables["content"] = converted
-		
-		return v
+		return self.parser.to_variables(string, v, ignore_content=ignore_content)
 
 def remove_inner_outer_quotes(string):
 	if string[0] == '"':

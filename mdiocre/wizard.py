@@ -145,13 +145,45 @@ class Wizard():
 				target_file = os.path.sep.join([target_path, f])
 				
 				# markdown file ending in .md -> html
-				# needs a template file ending in .html
-				# XXX: MDiocre-parsable source format
 				if f.lower()[-3:] == '.md':
 					self.m.switch_parser("markdown")
 					# new target file name
 					# XXX: generate are only HTML
 					convert_file = target_file[:-3] + '.html'
+					
+					# process file
+					with open(original_file, 'r') as md:
+						orig_md = md.read()
+					
+					conv_md = self.generate_from_string(orig_md, source_dir)
+					
+					if conv_md != '':
+						# if properly converted, write the
+						# html file
+						if os.path.exists(convert_file):
+							l.print('(OVERWRITING {})'.format(os.path.split(convert_file)[1]),
+								level=1, severity='serious')
+						l.print('{} is a MDiocre file, writing {}'.format(f, os.path.split(convert_file)[1]),
+							level=1, severity='ok')
+						with open(convert_file, 'w') as rendered:
+							rendered.write(conv_md)
+					else:
+						# if not, don't convert - just perform a copy
+						if os.path.exists(target_file):
+							l.print('(OVERWRITING {})'.format(f),
+								level=1, severity='serious')
+						l.print('{} is NOT a MDiocre file, copying instead'.format(f),
+							level=1, severity='warning')
+						shutil.copyfile(
+							original_file,
+							target_file
+							)
+				# restructured text
+				# TODO: this is copied over from that earlier if, split this into its own function?
+				elif f.lower()[-4:] == '.rst':
+					self.m.switch_parser("rst")
+					
+					convert_file = target_file[:-4] + '.html'
 					
 					# process file
 					with open(original_file, 'r') as md:

@@ -2,6 +2,10 @@ import re
 from . import BaseParser, sub_func
 
 class HtmlParser(BaseParser):
+	'''
+	In HTML, MDiocre commands are HTML comments prefixed
+	with ``<!--:``.
+	'''
 
 	RE_COMMENTS = re.compile(r'<!--:(.+?)-->')
 	

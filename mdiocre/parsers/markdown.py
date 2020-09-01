@@ -5,7 +5,11 @@ from . import BaseParser, sub_func
 from markdown import Markdown
 
 class MarkdownParser(BaseParser):
-
+	'''
+	In Markdown, MDiocre commands are HTML comments prefixed
+	with ``<!--:``.
+	'''
+	
 	RE_COMMENTS = re.compile(r'<!--:(.+?)-->')
 	
 	def to_variables(self, markdown, v, ignore_content=False):

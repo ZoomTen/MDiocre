@@ -27,5 +27,23 @@ def sub_func(match, v):
 		return v.get(statement)
 
 class BaseParser():
+	'''
+	This is the base class of which every MDiocre parser must
+	be inheriting from. Even though this doesn't do much at the
+	moment...
+	'''
 	def to_variables(self, text, v, ignore_content=False):
+		'''
+		Converts a string to a :class:`VariableManager`
+		object. This should be reimplemented.
+		
+		Args:
+		    text (string): The source file from which to
+		        process and extract MDiocre commands from.
+		    v (VariableManager): The object to which the
+		        variables is processed and stored to.
+		
+		Returns:
+		    A :class:`VariableManager` object.
+		'''
 		return v

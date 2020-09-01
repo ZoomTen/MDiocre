@@ -6,8 +6,8 @@ import docutils.parsers.rst as rst
 
 class RstParser(BaseParser):
 	'''
-	Instead of <!--:title = "Abc"-->
-	it's :mdiocre:`title = "Abc"`
+	In ReStructuredText, MDiocre commands are its' own
+	RST role, "mdiocre".
 	'''
 	
 	# this doesn't match the roles matcher

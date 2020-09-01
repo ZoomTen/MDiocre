@@ -6,6 +6,8 @@
 MDiocre Documentation
 =====================
 
+:doc:`Changelog <changelog>`
+
 Users
 -----
 .. toctree::

@@ -55,7 +55,10 @@ class MDiocre():
 		module_name = '.parsers.{}'.format(name.lower())
 		class_name  = '{}Parser'.format(name.capitalize())
 		# Switch parser
-		module = import_module(module_name, 'mdiocre')
+		try:
+			module = import_module(module_name, 'mdiocre')
+		except ModuleNotFoundError:
+			raise NotImplementedError("parser {} not found, it might not have been implemented yet".format(name)) from None
 		module_class = getattr(module,class_name)
 		if not issubclass(module_class, BaseParser):
 			raise ImportError("class {} must be a subclass of {}".format(class_name, BaseParser.__name__)) from None

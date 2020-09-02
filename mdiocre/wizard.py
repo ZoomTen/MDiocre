@@ -11,9 +11,26 @@ Automatic page generation tools that require manipulating the file system
 l = Logger()
 
 class Wizard():
+	converters = {'md'   : 'markdown',
+	              'rst'  : 'rst',
+	              'html' : 'html',
+	              'htm'  : 'html',
+	              }
+
 	def __init__(self, quiet=False):
 		l.set_quiet(quiet)
 		self.m = MDiocre()
+	
+	def register_converter(self, file_extension, parser_name):
+		'''
+		Registers a parser with a file extension.
+		'''
+		# type checking
+		declare(file_extension, str)
+		declare(parser_name, str)
+		
+		self.converter[file_extension] = parser_name
+		print('.{} = {}'.format(file_extension, parser_name))
 	
 	def is_mdiocre_string(self, md_string):
 		'''
@@ -81,7 +98,58 @@ class Wizard():
 			# return an empty string from the get-go if it isn't
 			# a valid mdiocre file
 			return ''
+	
+	def generate_from_path(self, source_file, built_file, root=''):
+		'''
+		If the file is a MDiocre file, generate an HTML page from a
+		source file to a built file. Otherwise, simply copy the file.
+		'''
+		# type checking
+		declare(source_file, str)
+		declare(built_file, str)
 		
+		# check file extension
+		source_name, source_ext = os.path.splitext(source_file)
+		
+		# lop off the dot and make it all lowercase
+		source_ext = source_ext[1:].lower()
+		
+		source_dir, source_filename = os.path.split(source_file)
+		built_dir, built_filename = os.path.split(built_file)
+		
+		if os.path.exists(built_file):
+			l.print('(overwriting {})'.format(built_filename),
+				level=1, severity='serious')
+		
+		if source_ext in self.converters:
+			self.m.switch_parser(self.converters[source_ext])
+			
+			with open(source_file, 'r') as orig:
+				orig_string = orig.read()
+			
+			conv = self.generate_from_string(orig_string, root)
+			
+			if conv != '':
+				# if properly converted, write the file
+				l.print('{} is a MDiocre file, writing {}'.format(source_filename, built_filename),
+					level=1, severity='ok')
+				with open(built_file, 'w') as rendered:
+					rendered.write(conv)
+			else:
+				# if not, don't convert - just perform a copy
+				l.print('{} is NOT a MDiocre file, copying instead'.format(source_filename, built_filename),
+					level=1, severity='warning')
+				shutil.copyfile(
+					source_file,
+					built_file
+					)
+		else:
+			l.print('Copying {}'.format(source_filename),
+				level=1)
+			shutil.copyfile(
+				source_file,
+				built_file
+				)
 
 	def generate_from_directory(self, args):
 		'''
@@ -138,89 +206,18 @@ class Wizard():
 				l.print('directory exists -- making anyway!', severity='warning')
 				os.makedirs(target_path, exist_ok=True)
 			
-			# copy files in directory to their respective
-			# counterparts, but check .md files
+			# do the conversion
 			for f in files:
 				original_file = os.path.sep.join([path, f])
 				target_file = os.path.sep.join([target_path, f])
 				
-				# markdown file ending in .md -> html
-				if f.lower()[-3:] == '.md':
-					self.m.switch_parser("markdown")
-					# new target file name
-					# XXX: generate are only HTML
-					convert_file = target_file[:-3] + '.html'
-					
-					# process file
-					with open(original_file, 'r') as md:
-						orig_md = md.read()
-					
-					conv_md = self.generate_from_string(orig_md, source_dir)
-					
-					if conv_md != '':
-						# if properly converted, write the
-						# html file
-						if os.path.exists(convert_file):
-							l.print('(OVERWRITING {})'.format(os.path.split(convert_file)[1]),
-								level=1, severity='serious')
-						l.print('{} is a MDiocre file, writing {}'.format(f, os.path.split(convert_file)[1]),
-							level=1, severity='ok')
-						with open(convert_file, 'w') as rendered:
-							rendered.write(conv_md)
-					else:
-						# if not, don't convert - just perform a copy
-						if os.path.exists(target_file):
-							l.print('(OVERWRITING {})'.format(f),
-								level=1, severity='serious')
-						l.print('{} is NOT a MDiocre file, copying instead'.format(f),
-							level=1, severity='warning')
-						shutil.copyfile(
-							original_file,
-							target_file
-							)
-				# restructured text
-				# TODO: this is copied over from that earlier if, split this into its own function?
-				elif f.lower()[-4:] == '.rst':
-					self.m.switch_parser("rst")
-					
-					convert_file = target_file[:-4] + '.html'
-					
-					# process file
-					with open(original_file, 'r') as md:
-						orig_md = md.read()
-					
-					conv_md = self.generate_from_string(orig_md, source_dir)
-					
-					if conv_md != '':
-						# if properly converted, write the
-						# html file
-						if os.path.exists(convert_file):
-							l.print('(OVERWRITING {})'.format(os.path.split(convert_file)[1]),
-								level=1, severity='serious')
-						l.print('{} is a MDiocre file, writing {}'.format(f, os.path.split(convert_file)[1]),
-							level=1, severity='ok')
-						with open(convert_file, 'w') as rendered:
-							rendered.write(conv_md)
-					else:
-						# if not, don't convert - just perform a copy
-						if os.path.exists(target_file):
-							l.print('(OVERWRITING {})'.format(f),
-								level=1, severity='serious')
-						l.print('{} is NOT a MDiocre file, copying instead'.format(f),
-							level=1, severity='warning')
-						shutil.copyfile(
-							original_file,
-							target_file
-							)
-				# html, jpg, png, txt, etc.
-				else:
-					if os.path.exists(target_file):
-						l.print('(OVERWRITING {})'.format(f),
-							level=1, severity='serious')
-					l.print('Copying {}'.format(f),
-						level=1)
-					shutil.copyfile(
-						original_file,
-						target_file
-						)
+				original_name, original_ext = os.path.splitext(original_file)
+				# lop off the dot and make it all lowercase
+				original_ext = original_ext[1:].lower()
+				
+				if original_ext in self.converters:
+					target_name, target_ext = os.path.splitext(target_file)
+					target_file = os.path.extsep.join([target_name, 'html'])
+				
+				self.generate_from_path(original_file, target_file, root=source_dir)
 			

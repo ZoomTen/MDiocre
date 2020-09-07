@@ -218,7 +218,7 @@ class VariableManager():
 		
 		# check valid identifier
 		if ident in self.reserved_variable_names:
-			raise SyntaxError('assignment <{}>: variable name "{}" cannot be used!'.format(query, ident))
+			print('assignment <{}>: variable name "{}" cannot be used!'.format(query, ident))
 		
 		# do some maths
 		if re.match(RE_MATH, value):

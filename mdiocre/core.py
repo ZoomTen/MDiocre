@@ -1,4 +1,4 @@
-from .utils import declare, remove_inner_outer_quotes
+from .utils import declare, remove_inner_outer_quotes, Logger
 from .parsers import BaseParser, sub_func
 import re
 import datetime
@@ -57,12 +57,14 @@ class MDiocre():
 		# Switch parser
 		try:
 			module = import_module(module_name, 'mdiocre')
-		except ModuleNotFoundError:
-			raise NotImplementedError("parser {} not found, it might not have been implemented yet".format(name)) from None
-		module_class = getattr(module,class_name)
-		if not issubclass(module_class, BaseParser):
-			raise ImportError("class {} must be a subclass of {}".format(class_name, BaseParser.__name__)) from None
-		self.parser = module_class()
+		except Exception as e:
+			Logger().eprint("{}: error occured: {}".format(name, e), level=0, severity='serious')
+		else:
+			module_class = getattr(module,class_name)
+			if not issubclass(module_class, BaseParser):
+				Logger().eprint("{}: class {} must be a subclass of {}, not using.".format(name, class_name, BaseParser.__name__), level=0, severity='serious')
+			else:
+				self.parser = module_class()
 	
 	def sub_func(self, match, v):
 		'''

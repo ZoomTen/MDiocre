@@ -11,6 +11,7 @@ Automatic page generation tools that require manipulating the file system
 l = Logger()
 
 class Wizard():
+	# TODO: move this list to core.py, have all the converters register to core
 	converters = {'md'   : 'markdown',
 	              'rst'  : 'rst',
 	              'html' : 'html',

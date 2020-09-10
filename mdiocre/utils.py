@@ -122,4 +122,4 @@ class Logger():
 		Returns:
 		     None.
 		'''
-		return self.print(self, *args, level=level, severity=severity, file=sys.stderr, **kwargs)
+		return self.print(*args, level=level, severity=severity, file=sys.stderr, **kwargs)

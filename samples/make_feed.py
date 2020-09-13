@@ -1,10 +1,16 @@
 '''
 Create an RSS feed 
 '''
+
+import os
+import sys
+# point this to the folder where mdiocre.py is located
+sys.path.append(os.path.abspath('..'))
+
 from mdiocre.core import MDiocre
 from mdiocre.wizard import Wizard
 from feedgen import feed
-import re
+import datetime
 
 # directory where the blog files are
 BLOG_DIR = "source/blog"
@@ -16,15 +22,16 @@ AUTHOR_EMAIL = "something@example.com"
 WEBSITE_LINK = 'http://example.com'
 RSS_LINK = 'http://example.com/feed.rss'
 
-if __name__ == '__main__':
-	
+FEED_DESCRIPTION = "This is my feed"
 
+if __name__ == '__main__':
 	# feed info
 	fg = feed.FeedGenerator()
 	fg.title(WEBSITE_NAME)
+	fg.description(FEED_DESCRIPTION)
 	fg.author( {'name':WEBSITE_AUTHOR,'email':AUTHOR_EMAIL} )
 	fg.language(WEBSITE_LANG)
-	fg.generator('python-feedgen (MDiocre v.3.0)')
+	fg.generator('python-feedgen (MDiocre v.3.1)')
 
 	# feed links
 	fg.link(href=WEBSITE_LINK)
@@ -61,11 +68,20 @@ if __name__ == '__main__':
 		
 		# set date, defined by e.g. <!--:date = "2020-09-09" -->
 		blog_pub = content_vars.get("date")
+		blog_pub = datetime.datetime.strptime(blog_pub, '%Y-%m-%d')
+		tz_d = datetime.timedelta(hours=0)
+		tz_  = datetime.timezone(tz_d, name="gmt")
+		blog_pub = blog_pub.replace(tzinfo=tz_)
+		
+		# set feed content
+		blog_content = content_vars.get("content")
+		
+		link = "{}/{}.html".format(WEBSITE_LINK, file_name)
 		
 		# fill feed entry
 		fe.title(blog_title)
 		fe.description(blog_content)
-		fe.link(href="{}/{}.html".format(WEBSITE_LINK, file_name))
+		fe.link(href=link)
 		fe.published(blog_pub)
 
 	# print out the rss feed

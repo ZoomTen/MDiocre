@@ -22,7 +22,7 @@ copyright = '2020 Zumi'
 author = 'Zumi Daxuya'
 
 # The full version, including alpha/beta/rc tags
-release = '3.1 alpha'
+release = '3.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -30,8 +30,10 @@ release = '3.1 alpha'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.napoleon', 'sphinx.ext.autodoc'
+extensions = ['sphinx.ext.napoleon', 'sphinx.ext.autodoc', 'sphinx_rst_builder'
 ]
+
+rst_link_suffix = ".html"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

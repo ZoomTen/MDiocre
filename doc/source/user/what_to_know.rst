@@ -53,9 +53,20 @@ I decided it would be best to start off from scratch and rethink the design of M
 
 In summary, we now have 3 iterations of MDiocre:
    * **version 1.0** : Hacked together Bash script: https://gitlab.com/zumid/zumisite-oldtools
-   * **version 2.0** : Interface-focused, monolithic Python script: https://github.com/ZoomTen/MDiocre
+   * **version 2.0** : Interface-focused, monolithic Python script: https://github.com/ZoomTen/MDiocre/releases/tag/v2
    * **version 3.0** : Neater Python script (now)
 
 Plans for 3.1
 -------------
-Hacking in reStructured Text as well as modular index page generation.
+* Hacking in reStructured Text.
+* Modular index page generation.
+
+Implemented
+~~~~~~~~~~~
+* Split up the parser, thereby opening up support for other parsers. **reStructured Text support now added!**
+* Index pages, tags, feeds are not built-in; instead **implemented in scripts** under the `samples` directory.
+
+Plans for 3.2
+-------------
+* Removing deprecated functions
+* Add file and string conversion to the GUI

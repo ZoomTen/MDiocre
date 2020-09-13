@@ -3,8 +3,8 @@ from mdiocre.wizard import Wizard
 from mdiocre.utils import Logger
 
 APP_NAME    = 'MDiocre'
-APP_VERSION = '3.1a'
-APP_DATE    = '2020-09-01'
+APP_VERSION = '3.1'
+APP_DATE    = '2020-09-13'
 
 ap = ArgumentParser(
 		description='A terrible static page generator.'

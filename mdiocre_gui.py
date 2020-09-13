@@ -2,11 +2,19 @@
 
 import tkinter as tk
 from tkinter import ttk, filedialog
-from tkinter.messagebox import showinfo
+from tkinter.messagebox import showinfo, showerror
 
 from ttkthemes import ThemedTk
 
 import webbrowser
+
+from mdiocre.wizard import Wizard
+
+import contextlib
+from io import StringIO
+
+import sys
+import os
 
 log_txt = '''MDiocre GUI 1.0 ready.
 
@@ -16,10 +24,13 @@ Info: Files that will be processed by MDiocre must
 Press 'Process' to start.
 '''
 
-class Runner(object):  
-    def append_line(self, text):
-            global log_txt
-            log_txt += '\n{}'.format(text)
+def append_line(text):
+    global log_txt
+    log_txt += '\n{}'.format(text)
+
+def set_log(text):
+    global log_txt
+    log_txt = text
 
 class AppMenu(ttk.Frame):
     def __init__(self, root):
@@ -40,7 +51,7 @@ class AppMenu(ttk.Frame):
         menu_bar.add_cascade(label='File', menu=file_menu)
         menu_bar.add_cascade(label='Help', menu=help_menu)
         
-        menu_bar.configure(bg='#FCB64F')
+        #menu_bar.configure(bg='#FCB64F')
         
         # apply menubar
         root.config(menu=menu_bar)
@@ -54,6 +65,7 @@ class AppMenu(ttk.Frame):
 class Main(ttk.Frame):
     def __init__(self, root):
         self.root = root
+        self.tab_actions = {}
         self.create_title()
         self.create_pages()
         self.build_page()
@@ -62,15 +74,34 @@ class Main(ttk.Frame):
 
     def make_buttons(self):
         root = self.root
+
+        def process_button():
+            selected_tab = self.tabs.index(self.tabs.select())
+            action = self.tab_actions[selected_tab]
+            print('tab {}, action {}'.format(selected_tab, action.__name__))
+            action()
+
         tool_frm = ttk.Frame(root)
-        cancel_btn = ttk.Button(tool_frm)
-        cancel_btn.config(text='Cancel')
-        cancel_btn.pack(side='right', padx='10')
+        #cancel_btn = ttk.Button(tool_frm)
+        #cancel_btn.config(text='Cancel')
+        #cancel_btn.pack(side='right', padx='10')
         process_btn = ttk.Button(tool_frm)
         process_btn.config(text='Process')
+        process_btn.configure(command=process_button)
         process_btn.pack(side='right', padx='10')
         tool_frm.pack(side='bottom', fill=tk.X)
-        
+    
+    def set_tab_action(self, tab_number, func):
+        self.tab_actions[tab_number] = func
+    
+    def update_log(self):
+        self.message_2.config(state='normal')
+        self.message_2.delete(1.0, tk.END)
+        self.message_2.insert(0.0, log_txt)
+        self.message_2.config(state='disabled')
+        self.message_2.see("end")
+        #self.message_2.after(10, self.update_log)
+
     def build_page(self):
         root = self.build_frame
         
@@ -84,11 +115,22 @@ class Main(ttk.Frame):
             directory = filedialog.askdirectory()
             build_dir_etr.delete('0', 'end')
             build_dir_etr.insert('0', directory)
-            # update the log window
-            #message_2.config(state='normal')
-            #message_2.delete(1.0, tk.END)
-            #message_2.insert(0.0, log_txt)
-            #message_2.config(state='disabled')
+        
+        def do_build():
+            src = source_dir_etr.get()
+            dst = build_dir_etr.get()
+
+            if not os.path.exists(src):
+                showerror('Source does not exist!', "Source path: {}\n doesn't exist".format(src))
+            else:
+                c = StringIO()
+                w = Wizard()
+                with contextlib.redirect_stdout(c):
+                    # TODO: This is locking!
+                    w.generate_from_directory({'source_dir':src,'build_dir':dst})
+                c.seek(0)
+                append_line(c.read())
+                self.update_log()
 
         source_dir_frm = ttk.Frame(root)
         source_dir_txt = ttk.Label(source_dir_frm)
@@ -96,7 +138,7 @@ class Main(ttk.Frame):
         source_dir_txt.pack(side='left', padx='5', pady='5')
         source_dir_etr = ttk.Entry(source_dir_frm)
         source_dir_etr.delete('0', 'end')
-        source_dir_etr.insert('0', 'File')
+        source_dir_etr.insert('0', '')
         source_dir_etr.pack(side='left', ipadx='0', ipady='5', padx='5', pady='5', fill=tk.X, expand=1)
         source_dir_btn = ttk.Button(source_dir_frm)
         source_dir_btn.config(text='Open directory')
@@ -111,7 +153,7 @@ class Main(ttk.Frame):
         build_dir_txt.pack(side='left', padx='5', pady='5')
         build_dir_etr = ttk.Entry(build_dir_frm)
         build_dir_etr.delete('0', 'end')
-        build_dir_etr.insert('0', 'File')
+        build_dir_etr.insert('0', '')
         build_dir_etr.pack(side='left', ipadx='0', ipady='5', padx='5', pady='5', fill=tk.X, expand=1)
         build_dir_btn = ttk.Button(build_dir_frm)
         build_dir_btn.config(text='Open directory')
@@ -120,12 +162,16 @@ class Main(ttk.Frame):
         build_dir_frm.pack(side='top', padx='10', pady='10', fill=tk.X)
         
         # log
-        message_2 = tk.Text(root,height=0)
-        message_2.config(font='{monospace} 10 {}')
-        message_2.configure(bg='#A0541A', fg='#fff')
-        message_2.insert(0.0, log_txt)
-        message_2.config(state='disabled')
-        message_2.pack(side='top', ipadx='5', ipady='5', padx='5', pady='5', fill=tk.BOTH, expand=1)
+        self.message_2 = tk.Text(root,height=0)
+        self.message_2.config(font='{monospace} 10 {}')
+        #self.message_2.configure(bg='#A0541A', fg='#fff')
+        self.message_2.insert(0.0, log_txt)
+        self.message_2.config(state='disabled')
+        self.message_2.pack(side='top', ipadx='5', ipady='5', padx='5', pady='5', fill=tk.BOTH, expand=1)
+        #self.message_2.after(10, self.update_log)
+
+        # set the process function
+        self.set_tab_action(0, do_build)
     
     def process_page(self):
         pass
@@ -137,29 +183,29 @@ class Main(ttk.Frame):
 
     def create_pages(self):
         # create notebook widget
-        tabs = ttk.Notebook(self.root)
+        self.tabs = ttk.Notebook(self.root)
 
         # create pages
-        self.build_frame = ttk.Frame(tabs)
-        self.process_frame = ttk.Frame(tabs)
-        self.str_frame = ttk.Frame(tabs)
+        self.build_frame = ttk.Frame(self.tabs)
+        #self.process_frame = ttk.Frame(self.tabs)
+        #self.str_frame = ttk.Frame(self.tabs)
 
         # assign each to a tab
-        tabs.add(self.build_frame, text=' Build a directory ')
-        tabs.add(self.process_frame, text=' Process a file ')
-        tabs.add(self.str_frame, text=' Process a string ')
+        self.tabs.add(self.build_frame, text=' Build a directory ')
+        #self.tabs.add(self.process_frame, text=' Process a file ')
+        #self.tabs.add(self.str_frame, text=' Process a string ')
 
         # add the tab + pages
-        tabs.pack(expand=True, fill='both', padx=10, pady=10)
+        self.tabs.pack(expand=True, fill='both', padx=10, pady=10)
 
 if __name__ == "__main__":
     # setup window
-    window = ThemedTk(theme='kroc')
-    
-    #style = ttk.Style()
+    #window = ThemedTk(theme='elegance')
+    window = tk.Tk()
+    style = ttk.Style()
 
     window.title('MDiocre-GUI')
-    window.configure(bg='#FCB64F')
+    #window.configure(bg='#FCB64F')
     
     main_frame = ttk.Frame(window)
     
@@ -168,7 +214,7 @@ if __name__ == "__main__":
     Main(window)
     
     # apply style
-    #style.theme_use('clam')
+    style.theme_use('clam')
 
     # run
     window.mainloop()

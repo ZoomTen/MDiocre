@@ -152,7 +152,7 @@ class Wizard():
 				built_file
 				)
 
-	def generate_from_directory(self, args):
+	def generate_from_directory(self, args, callback=None):
 		'''
 		Generates pages based on the directory it is supplied through
 		`args`.
@@ -169,6 +169,9 @@ class Wizard():
 		    args (dict): A dictionary containing arguments for this
 		        function. It must have the following keys:
 		        ``source_dir`` and ``build_dir``.
+		    callback (func): A function to call every file completion.
+		        Its arguments are a dictionary containing the keys
+		        "original_file", "target_file", "root".
 		
 		Returns:
 		    True, if every file is successfully processed. Otherwise,
@@ -221,4 +224,6 @@ class Wizard():
 					target_file = os.path.extsep.join([target_name, 'html'])
 				
 				self.generate_from_path(original_file, target_file, root=source_dir)
-			
+				
+				if callback is not None:
+					callback({"original_file": original_file,"target_file":target_file,"root":source_dir})

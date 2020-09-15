@@ -70,3 +70,8 @@ Plans for 3.2
 -------------
 * Removing deprecated functions
 * Add file and string conversion to the GUI
+
+Implemented
+~~~~~~~~~~~
+* Add Zim Wikitext parser
+* Remove that one deprecated function

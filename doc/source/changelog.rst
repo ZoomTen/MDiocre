@@ -1,6 +1,21 @@
 What's new?
 ===========
 
+
+3.2 (2020-09-15)
+----------------
+User
+~~~~
+* Zim Wikitext support now added! However, because MDiocre at the moment relies
+  on file extensions, the file name has to end in a `.zimtxt`. Additionally,
+  MDiocre commands will be in the form of ``[mdiocre: <command>]`` - you simply
+  type it in when writing a Zim document. The number of spaces around the command
+  doesn't really matter as long as they are on one line.
+
+API
+~~~
+* :meth:`mdiocre.core.MDiocre.sub_func` has been removed.
+
 3.1 (2020-09-13)
 ----------------
 User

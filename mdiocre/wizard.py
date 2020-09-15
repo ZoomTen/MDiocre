@@ -16,6 +16,7 @@ class Wizard():
 	              'rst'  : 'rst',
 	              'html' : 'html',
 	              'htm'  : 'html',
+	              'zimtxt'  : 'zim'
 	              }
 
 	def __init__(self, quiet=False):

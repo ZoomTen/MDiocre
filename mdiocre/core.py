@@ -66,13 +66,6 @@ class MDiocre():
 			else:
 				self.parser = module_class()
 	
-	def sub_func(self, match, v):
-		'''
-		Moved to :meth:`mdiocre.parsers.sub_func`. Will remove in
-		MDiocre 3.2.
-		'''
-		return sub_func(match, v)
-	
 	def render(self, template, variables):
 		'''
 		Renders a template with the specified variables.

@@ -10,7 +10,7 @@ Core MDiocre conversion class
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
 RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_ASSIGNMENT = re.compile(r'.+=.+')
-RE_CONCAT = re.compile(r'(.+?)[^\\],|(.+?)$')
+RE_CONCAT = re.compile(r'(\"[^\"]*\"|\'[^\']*\'|\w+), |(\"[^\"]*\"|\'[^\']*\'|\w+)$')
 RE_ESCAPE = re.compile(r'(\\)(.{1})')
 
 class MDiocre():
@@ -227,16 +227,12 @@ class VariableManager():
 			concat_vars = []
 			
 			concat_tokens = re.findall(RE_CONCAT, value)
+			concat_tokens = list(map(lambda tok: tok[0] or tok[1], concat_tokens))
 			
 			# add each token to concat_vars
-			# you get pairs like ('', '', 'lol')
-			# due to the regex
 			for token in concat_tokens:
-				for el in token:
-					if el != '':
-						# remove whitespace from each token
-						el = el.strip()
-						concat_vars.append(el)
+				token = token.strip()
+				concat_vars.append(token)
 			
 			# start with a blank value
 			value = ''

@@ -34,6 +34,41 @@ class Wizard():
 		self.converter[file_extension] = parser_name
 		print('.{} = {}'.format(file_extension, parser_name))
 	
+	def vars_directly_from_file(self, source_file):
+		'''
+		Generate a VariableManager object directly from a source file
+		name using automatic file type detection. Directly means that
+		it won't check if it is a "valid" MDiocre file - that is,
+		whether or not there is a template doesn't matter one bit.
+		
+		Args:
+		    source_file(string): Path to the MDiocre file to process.
+		
+		Returns:
+		    VariableManager object if the source_file is parseable.
+		    None otherwise.
+		'''
+		# type checking
+		declare(source_file, str)
+		
+		# check file extension
+		source_name, source_ext = os.path.splitext(source_file)
+		
+		# lop off the dot and make it all lowercase
+		source_ext = source_ext[1:].lower()
+		
+		source_dir, source_filename = os.path.split(source_file)
+		
+		if source_ext in self.converters:
+			self.m.switch_parser(self.converters[source_ext])
+			
+			with open(source_file, 'r') as orig:
+				orig_string = orig.read()
+			
+			return self.m.process(orig_string)
+		
+		return None
+		
 	def is_mdiocre_string(self, md_string):
 		'''
 		Determines whether or not this is valid MDiocre-formatted

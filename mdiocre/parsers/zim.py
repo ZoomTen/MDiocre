@@ -10,7 +10,7 @@ is as follows:
 In addition, just as <pre> blocks needs to have a \'\'\' line before and after
 them, raw html needs to have a !!! line before and after them.
 '''
-
+from os import path as osp
 import re
 from . import BaseParser, sub_func
 
@@ -64,7 +64,7 @@ class ZimParser(BaseParser):
 				link = match.groups()[0]
 		
 			if not re.search(r'^\w+://', link.lower()):
-				if not link.lower().endswith('.html'):
+				if osp.splitext(link)[-1] == '':
 					link = link + '.html'
 				if link.startswith('+'):
 					link = link[1:]

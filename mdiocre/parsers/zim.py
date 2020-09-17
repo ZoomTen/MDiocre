@@ -6,6 +6,9 @@ is as follows:
 
 [mdiocre: variable]
 [mdiocre: variable = "Lorem Ipsum"]
+
+In addition, just as <pre> blocks needs to have a \'\'\' line before and after
+them, raw html needs to have a !!! line before and after them.
 '''
 
 import re
@@ -43,8 +46,10 @@ class ZimParser(BaseParser):
 		LINK_RE = re.compile(r'\[\[(?!\[)((.*?)\|(.*?)|(.*?))\]\]')
 		IMG_RE = re.compile(r'\{\{(.*?)\?(.*?)\}\}|\{\{(.*?)\}\}')
 		PRE_RE = re.compile(r"^'''\s*$")
+		HTML_RE = re.compile(r"^!!!\s*$")
 		
 		pre_flag = False
+		html_flag = False
 		ul_flag = False
 		output_markup = []
 		
@@ -103,10 +108,17 @@ class ZimParser(BaseParser):
 						output_markup.append('<pre>')
 					else:
 						output_markup.append('</pre>')
+				elif re.match(HTML_RE, line):
+					html_flag = not(html_flag)
 				else:
 					if pre_flag:
 						# don't process anything if we're in
-						# pre mode
+						# pre mode, except to replace HTML chars
+						# with escape chars
+						line = line.replace('<', '&lt;')\
+							.replace('>', '&gt;')
+					elif html_flag:
+						# absolutely don't process anything
 						pass
 					else:
 						# do processing
@@ -159,10 +171,22 @@ class ZimParser(BaseParser):
 								'<{0}>\g<1></{0}>'.format(tag),
 								line
 								)
-				if not re.match(PRE_RE, line):
 					output_markup.append(line)
 		
-		return '\n'.join(output_markup)
+		# lists are mutable in python
+		# filter out empty lines, except inside a <pre> block
+		pre_mode = [False]
+		def not_empty(line, pre_mode):
+			if line == '<pre>':
+				pre_mode[0] = True
+			elif line == '</pre>':
+				pre_mode[0] = False
+			if pre_mode[0]:
+				return True
+			else:
+				return not re.match(r'^\s*$', line)
+		
+		return '\n'.join(filter(lambda line: not_empty(line, pre_mode), output_markup))
 	
 	def to_variables(self, zimtxt, v, ignore_content=False):
 		def conv_sub_func(match):

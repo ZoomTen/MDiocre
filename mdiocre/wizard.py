@@ -136,7 +136,7 @@ class Wizard():
 			# a valid mdiocre file
 			return ''
 	
-	def generate_from_path(self, source_file, built_file, root=''):
+	def generate_from_path(self, source_file, built_file, root='', to_html=False):
 		'''
 		If the file is a MDiocre file, generate an HTML page from a
 		source file to a built file. Otherwise, simply copy the file.
@@ -154,9 +154,7 @@ class Wizard():
 		source_dir, source_filename = os.path.split(source_file)
 		built_dir, built_filename = os.path.split(built_file)
 		
-		if os.path.exists(built_file):
-			l.print('(overwriting {})'.format(built_filename),
-				level=1, severity='serious')
+		has_file_originally = os.path.exists(built_file)
 		
 		if source_ext in self.converters:
 			self.m.switch_parser(self.converters[source_ext])
@@ -167,6 +165,10 @@ class Wizard():
 			conv = self.generate_from_string(orig_string, root)
 			
 			if conv != '':
+				if to_html:
+					built_name, built_ext = os.path.splitext(built_file)
+					built_file = os.path.extsep.join([built_name, 'html'])
+					built_dir, built_filename = os.path.split(built_file)
 				# if properly converted, write the file
 				l.print('{} is a MDiocre file, writing {}'.format(source_filename, built_filename),
 					level=1, severity='ok')
@@ -187,6 +189,10 @@ class Wizard():
 				source_file,
 				built_file
 				)
+		
+		if has_file_originally:
+			l.print('(overwriting {})'.format(built_filename),
+				level=1, severity='serious')
 
 	def generate_from_directory(self, args, callback=None):
 		'''
@@ -255,11 +261,7 @@ class Wizard():
 				# lop off the dot and make it all lowercase
 				original_ext = original_ext[1:].lower()
 				
-				if original_ext in self.converters:
-					target_name, target_ext = os.path.splitext(target_file)
-					target_file = os.path.extsep.join([target_name, 'html'])
-				
-				self.generate_from_path(original_file, target_file, root=source_dir)
+				self.generate_from_path(original_file, target_file, root=source_dir, to_html=True)
 				
 				if callback is not None:
 					callback({"original_file": original_file,"target_file":target_file,"root":source_dir})

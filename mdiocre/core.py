@@ -10,7 +10,7 @@ Core MDiocre conversion class
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
 RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_ASSIGNMENT = re.compile(r'.+=.+')
-RE_CONCAT = re.compile(r'(\"[^\"]*\"|\'[^\']*\'|\w+), |(\"[^\"]*\"|\'[^\']*\'|\w+)$')
+RE_CONCAT = re.compile(r'(\"[^\"]*\"|\'[^\']*\'|\w+),\s*|(\"[^\"]*\"|\'[^\']*\'|\w+)$')
 RE_ESCAPE = re.compile(r'(\\)(.{1})')
 
 class MDiocre():

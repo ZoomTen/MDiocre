@@ -1,14 +1,22 @@
 import shutil
 import os
 import re
-from .utils import declare, Logger
+from .utils import declare
+import logging
 from .core import MDiocre
 
 '''
 Automatic page generation tools that require manipulating the file system
 '''
 
-l = Logger()
+logger = logging.getLogger('mdiocre.wizard')
+
+# log levels
+log_info    = logging.INFO
+log_ok      = log_info + 5
+log_warning = logging.WARNING
+log_serious = log_warning + 5
+log_error   = logging.ERROR
 
 class Wizard():
 	# TODO: move this list to core.py, have all the converters register to core
@@ -19,8 +27,7 @@ class Wizard():
 	              'zimtxt'  : 'zim'
 	              }
 
-	def __init__(self, quiet=False):
-		l.set_quiet(quiet)
+	def __init__(self):
 		self.m = MDiocre()
 	
 	def register_converter(self, file_extension, parser_name):
@@ -177,31 +184,31 @@ class Wizard():
 				if to_html:
 					built_name, built_ext = os.path.splitext(built_file)
 					built_file = os.path.extsep.join([built_name, 'html'])
+					
+					# update with the html name
+					has_file_originally = os.path.exists(built_file)
+					
 					built_dir, built_filename = os.path.split(built_file)
 				# if properly converted, write the file
-				l.print('{} is a MDiocre file, writing {}'.format(source_filename, built_filename),
-					level=1, severity='ok')
+				logger.log(log_ok + 1, '{} is a MDiocre file, writing {}.'.format(source_filename, built_filename))
 				with open(built_file, 'w') as rendered:
 					rendered.write(conv)
 			else:
 				# if not, don't convert - just perform a copy
-				l.print('{} is NOT a MDiocre file, copying instead'.format(source_filename, built_filename),
-					level=1, severity='warning')
+				logger.log(log_warning + 1, '{} is NOT a MDiocre file, copying instead.'.format(source_filename, built_filename))
 				shutil.copyfile(
 					source_file,
 					built_file
 					)
 		else:
-			l.print('Copying {}'.format(source_filename),
-				level=1)
+			logger.log(log_info + 1, 'copying {}'.format(source_filename))
 			shutil.copyfile(
 				source_file,
 				built_file
 				)
 		
 		if has_file_originally:
-			l.print('(overwriting {})'.format(built_filename),
-				level=1, severity='serious')
+			logger.log(log_serious + 1,'overwriting {}!'.format(built_filename))
 
 	def generate_from_directory(self, args, callback=None):
 		'''
@@ -235,6 +242,9 @@ class Wizard():
 		source_dir = os.path.abspath(args['source_dir'])
 		build_dir = os.path.abspath(args['build_dir'])
 		
+		sd_rel = os.path.relpath(source_dir)
+		bd_rel = os.path.relpath(build_dir)
+		
 		source_parent, source_folder = os.path.split(source_dir)
 		
 		# process files from the source directory
@@ -252,13 +262,15 @@ class Wizard():
 							])
 						)
 			
+			tp_rel = os.path.relpath(target_path)
+			
 			# make directories
-			l.print('create:', target_path)
+			logger.info('creating {}.'.format(tp_rel))
 			
 			try:
 				os.makedirs(target_path)
 			except FileExistsError:
-				l.print('directory exists -- making anyway!', severity='warning')
+				logger.log(log_warning + 1, 'directory {} exists -- making anyway!'.format(os.path.relpath(target_path)))
 				os.makedirs(target_path, exist_ok=True)
 			
 			# do the conversion
@@ -274,3 +286,4 @@ class Wizard():
 				
 				if type(callback).__name__ == 'function':
 					callback({"original_file": original_file,"target_file":target_file,"root":source_dir})
+		logger.info('done processing {}.'.format(sd_rel))

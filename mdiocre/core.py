@@ -1,4 +1,5 @@
-from .utils import declare, remove_inner_outer_quotes, Logger
+from .utils import declare, remove_inner_outer_quotes
+import logging
 from .parsers import BaseParser, sub_func
 import re
 import datetime
@@ -6,6 +7,8 @@ from importlib import import_module
 '''
 Core MDiocre conversion class
 '''
+
+logger = logging.getLogger('mdiocre.core')
 
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
 RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
@@ -66,11 +69,11 @@ class MDiocre():
 		try:
 			module = import_module(module_name, 'mdiocre')
 		except Exception as e:
-			Logger().eprint("{}: error occured: {}".format(name, e), level=0, severity='serious')
+			logger.error("{}: error occured: {}".format(name, e))
 		else:
 			module_class = getattr(module,class_name)
 			if not issubclass(module_class, BaseParser):
-				Logger().eprint("{}: class {} must be a subclass of {}, not using.".format(name, class_name, BaseParser.__name__), level=0, severity='serious')
+				logger.error("{}: class {} must be a subclass of {}, not using.".format(name, class_name, BaseParser.__name__))
 			else:
 				self.parser = module_class()
 	
@@ -209,6 +212,8 @@ class VariableManager():
 		    None (or SyntaxError). If the variable is successfully assigned, its
                     value will be added to the object's ``variables`` dictionary.
 		'''
+		# TODO: split query = "BLAH = 'blah', dah" into variable = "BLAH ", value="'blah', dah"
+		
 		# type checking
 		declare(query, str)
 		if not (re.match(RE_ASSIGNMENT, query)):

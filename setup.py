@@ -1,13 +1,24 @@
-import versioneer
+import os
+import re
+from distutils.util import convert_path
 
 try:
 	from setuptools import setup
 except ImportError:
 	from distutils.core import setup
 
+def version_number(filename):
+	version_file = open(convert_path(filename)).read()
+	version_match = re.search(r"^__version__\s*=\s*['\"]([^'\"]*)['\"]", version_file, re.M)
+	if version_match:
+		return version_match.group(1)
+	raise RuntimeError('Unable to find version string.')
+
+version = version_number('mdiocre/__meta__.py')
+
 setup(
 	name='mdiocre',
-	version=versioneer.get_version(),
+	version=version,
 	description='Static website generator',
 	license='MIT',
 	author='Zumi Daxuya',

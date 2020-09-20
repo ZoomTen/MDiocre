@@ -1,6 +1,2 @@
-from ._version import get_versions
-
-APP_NAME    = 'MDiocre'
-APP_VERSION = get_versions()['version']
-
-del get_versions
+__version__ = '3.2.0.dev1'
+__date__    = '2020-09-20'

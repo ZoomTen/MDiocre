@@ -2,4 +2,3 @@ recursive-include mdiocre *.py
 include setup.py
 include LICENSE
 include README.md
-include MANIFEST

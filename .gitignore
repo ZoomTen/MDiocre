@@ -1,2 +1,5 @@
 __pycache__/
 doc/build
+mdiocre.egg-info/
+build
+dist

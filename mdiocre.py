@@ -1,13 +1,11 @@
 from argparse import ArgumentParser
+from mdiocre.__meta__ import APP_NAME, APP_VERSION
 from mdiocre.wizard import Wizard
 
 import logging
 import sys
 
-APP_NAME    = 'MDiocre'
-APP_VERSION = '3.2a'
-APP_DATE    = '2020-09-15'
-
+CLI_VERSION = '1.0'
 
 def has_color():
 	'''
@@ -67,7 +65,7 @@ if __name__ == '__main__':
 	# display header
 	if not args.quiet:
 		print()
-		app_str = "{} version {} ({})".format(APP_NAME, APP_VERSION, APP_DATE)
+		app_str = "{} version {}".format(APP_NAME, APP_VERSION)
 		print(app_str)
 		print('-'*len(app_str))
 

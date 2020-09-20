@@ -21,7 +21,7 @@ class MDiocre():
 	    parser (Optional): a BaseParser-derived object. If both
 	        `parser_name` and `parser` are defined, `parser` takes the
 	        priority.
-	    parser_name (Optional): The parser name. See :meth:`switch_parser`
+	    parser_name (str, Optional): The parser name. See :meth:`switch_parser`
 	        for which ones are currently implemented.
 	'''
 	def __init__(self, parser=None, parser_name=None):
@@ -30,6 +30,9 @@ class MDiocre():
 				# use markdown by default
 				self.switch_parser("markdown")
 			else:
+				# type checking
+				declare(parser_name, str)
+				
 				self.switch_parser(parser_name)
 		else:
 			if not issubclass(parser, BaseParser):
@@ -51,7 +54,12 @@ class MDiocre():
 		Returns:
 		    None.
 		'''
-		# Postulations for names
+		# type checking
+		declare(name, str)
+		
+		# specifications for names
+		# e.g. "markdown" -> MarkdownParser in parsers/markdown.py
+		#   or "rst"      -> RstParser      in parsers/rst.py
 		module_name = '.parsers.{}'.format(name.lower())
 		class_name  = '{}Parser'.format(name.capitalize())
 		# Switch parser

@@ -84,6 +84,9 @@ class Wizard():
 		    True if it is a valid string, False otherwise.
 		
 		'''
+		# type checking
+		declare(md_string, str)
+		
 		variables = self.m.process(md_string, ignore_content=True)
 		
 		md_template_string = variables.get('mdiocre-template')
@@ -115,6 +118,10 @@ class Wizard():
 		    A rendered HTML string. If the ``md_string`` is invalid or if
 		    it cannot find the template file, it will return an empty string.
 		'''
+		# type checking
+		declare(md_string, str)
+		declare(root, str)
+		
 		if self.is_mdiocre_string(md_string):
 			variables = self.m.process(md_string)
 			
@@ -144,6 +151,8 @@ class Wizard():
 		# type checking
 		declare(source_file, str)
 		declare(built_file, str)
+		declare(root, str)
+		declare(to_html, bool)
 		
 		# check file extension
 		source_name, source_ext = os.path.splitext(source_file)

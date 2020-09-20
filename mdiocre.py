@@ -17,11 +17,8 @@ def has_color():
 	    True if the running system's terminal supports color, and False
 	    otherwise.
 	'''
-	plat = sys.platform
-	supported_platform = plat != 'Pocket PC' and (plat != 'win32' or 'ANSICON' in os.environ)
-
 	is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-	return supported_platform and is_a_tty
+	return is_a_tty
 
 class MDiocreHandler(logging.Handler):
 	quiet = False
@@ -72,8 +69,9 @@ if __name__ == '__main__':
 		print()
 		app_str = "{} version {} ({})".format(APP_NAME, APP_VERSION, APP_DATE)
 		print(app_str)
-		print('='*len(app_str))
-		print()
+		print('-'*len(app_str))
 
 	# run the wizard
 	w.generate_from_directory(vars(args))
+	
+	print()

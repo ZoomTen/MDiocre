@@ -263,5 +263,5 @@ class Wizard():
 				
 				self.generate_from_path(original_file, target_file, root=source_dir, to_html=True)
 				
-				if callback is not None:
+				if type(callback).__name__ == 'function':
 					callback({"original_file": original_file,"target_file":target_file,"root":source_dir})

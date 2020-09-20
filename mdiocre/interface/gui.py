@@ -1,4 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python
+
+GUI_VERSION = '1.0.0.dev1'
 
 import tkinter as tk
 from tkinter import ttk, filedialog
@@ -9,6 +11,7 @@ from ttkthemes import ThemedTk
 import webbrowser
 
 from mdiocre.wizard import Wizard
+from mdiocre.__meta__ import __version__ as MD_VERSION
 
 import contextlib
 from io import StringIO
@@ -16,13 +19,13 @@ from io import StringIO
 import sys
 import os
 
-log_txt = '''MDiocre GUI 1.0 ready.
+log_txt = '''MDiocre GUI {} ready.
 
 Supported extensions: *.md, *.html, *.htm, *.rst.
 Info: Files that will be processed by MDiocre must
       have the 'mdiocre-template' set.
 Press 'Process' to start.
-'''
+'''.format(GUI_VERSION)
 
 def append_line(text):
     global log_txt
@@ -57,7 +60,7 @@ class AppMenu(ttk.Frame):
         root.config(menu=menu_bar)
 
     def about_popup(self):
-        showinfo('MDiocre-GUI', 'MDiocre GUI v1.0 (MD3.1)\n(c) 2020 Zumi')
+        showinfo('MDiocre-GUI', 'MDiocre GUI {} (MD: {})\n(c) 2020 Zumi'.format(GUI_VERSION, MD_VERSION))
 
     def open_issues_page(self):
         pass
@@ -198,7 +201,7 @@ class Main(ttk.Frame):
         # add the tab + pages
         self.tabs.pack(expand=True, fill='both', padx=10, pady=10)
 
-if __name__ == "__main__":
+def gui():
     # setup window
     #window = ThemedTk(theme='elegance')
     window = tk.Tk()
@@ -218,3 +221,6 @@ if __name__ == "__main__":
 
     # run
     window.mainloop()
+   
+if __name__ == "__main__":
+    gui()

@@ -1,11 +1,13 @@
+#!/usr/bin/python
+
+CLI_VERSION = '1.0.0.dev1'
+
 from argparse import ArgumentParser
-from mdiocre.__meta__ import APP_NAME, APP_VERSION
+from mdiocre.__meta__ import __version__ as MD_VERSION
 from mdiocre.wizard import Wizard
 
 import logging
 import sys
-
-CLI_VERSION = '1.0'
 
 def has_color():
 	'''
@@ -45,7 +47,7 @@ class MDiocreHandler(logging.Handler):
 			if color_enable:
 				print('\033[0m')
 
-if __name__ == '__main__':
+def cli():
 	ap = ArgumentParser(
 			description='A terrible static page generator.'
 		)
@@ -65,11 +67,16 @@ if __name__ == '__main__':
 	# display header
 	if not args.quiet:
 		print()
-		app_str = "{} version {}".format(APP_NAME, APP_VERSION)
+		app_str  = "MDiocre-CLI version {}".format(CLI_VERSION)
+		base_str = "(using MDiocre version {})".format(MD_VERSION)
 		print(app_str)
 		print('-'*len(app_str))
+		print(base_str)
 
 	# run the wizard
 	w.generate_from_directory(vars(args))
 	
 	print()
+
+if __name__ == '__main__':
+	cli()

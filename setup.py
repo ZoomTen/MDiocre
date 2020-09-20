@@ -26,9 +26,16 @@ setup(
 	author='Zumi Daxuya',
 	author_email='daxuya.zumi+mdiocre@protonmail.com',
 	url='https://github.com/ZoomTen/MDiocre',
-	packages=['mdiocre', 'mdiocre.parsers'],
+	packages=['mdiocre', 'mdiocre.parsers', 'mdiocre.interface'],
 	keywords=['converter', 'generator', 'markdown', 'html', 'static'],
 	install_requires=['markdown'],
+	entry_points={
+		'console_scripts':
+			[
+				'mdiocre = mdiocre.interface.cli:cli',
+				'mdiocre-gui = mdiocre.interface.gui:gui'
+			]
+	},
 	classifiers=[
 		'Development Status :: 4 - Beta',
 		'Intended Audience :: Developers',

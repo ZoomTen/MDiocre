@@ -1,8 +1,5 @@
 recursive-include mdiocre *.py
-include versioneer.py
 include setup.py
-include setup.cfg
 include LICENSE
 include README.md
 include MANIFEST
-include mdiocre/_version.py

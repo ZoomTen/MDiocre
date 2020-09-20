@@ -7,14 +7,16 @@ try:
 except ImportError:
 	from distutils.core import setup
 
-def version_number(filename):
-	version_file = open(convert_path(filename)).read()
-	version_match = re.search(r"^__version__\s*=\s*['\"]([^'\"]*)['\"]", version_file, re.M)
-	if version_match:
-		return version_match.group(1)
-	raise RuntimeError('Unable to find version string.')
+META_PATH = 'mdiocre/__meta__.py'
 
-version = version_number('mdiocre/__meta__.py')
+def get_meta(meta_path, key):
+	meta_file = open(convert_path(meta_path)).read()
+	meta_match = re.search("^__{}__\s*=\s*['\"]([^'\"]*)['\"]".format(key), meta_file, re.M)
+	if meta_match:
+		return meta_match.group(1)
+	raise RuntimeError('Unable to find meta string.')
+
+version = get_meta(META_PATH, 'version')
 
 setup(
 	name='mdiocre',

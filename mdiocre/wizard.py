@@ -150,7 +150,7 @@ class Wizard():
 			# a valid mdiocre file
 			return ''
 	
-	def generate_from_path(self, source_file, built_file, root='', to_html=False):
+	def generate_from_path(self, source_file, built_file, root='', to_html=False, level=0):
 		'''
 		If the file is a MDiocre file, generate an HTML page from a
 		source file to a built file. Otherwise, simply copy the file.
@@ -190,25 +190,25 @@ class Wizard():
 					
 					built_dir, built_filename = os.path.split(built_file)
 				# if properly converted, write the file
-				logger.log(log_ok + 1, '{} is a MDiocre file, writing {}.'.format(source_filename, built_filename))
+				logger.log(log_ok + level, '{} is a MDiocre file, writing {}.'.format(source_filename, built_filename))
 				with open(built_file, 'w') as rendered:
 					rendered.write(conv)
 			else:
 				# if not, don't convert - just perform a copy
-				logger.log(log_warning + 1, '{} is NOT a MDiocre file, copying instead.'.format(source_filename, built_filename))
+				logger.log(log_warning + level, '{} is NOT a MDiocre file, copying instead.'.format(source_filename, built_filename))
 				shutil.copyfile(
 					source_file,
 					built_file
 					)
 		else:
-			logger.log(log_info + 1, 'copying {}'.format(source_filename))
+			logger.log(log_info + level, 'copying {}'.format(source_filename))
 			shutil.copyfile(
 				source_file,
 				built_file
 				)
 		
 		if has_file_originally:
-			logger.log(log_serious + 1,'overwriting {}!'.format(built_filename))
+			logger.log(log_serious + level,'overwriting {}!'.format(built_filename))
 
 	def generate_from_directory(self, args, callback=None):
 		'''
@@ -247,6 +247,8 @@ class Wizard():
 		
 		source_parent, source_folder = os.path.split(source_dir)
 		
+		logger.info('begin processing {} -> {}.'.format(sd_rel, bd_rel))
+		
 		# process files from the source directory
 		for path, folders, files in (os.walk(source_dir, followlinks=True)):
 			parent_path, path_folder = os.path.split(path)
@@ -262,15 +264,23 @@ class Wizard():
 							])
 						)
 			
+			sp_rel = os.path.relpath(path)
 			tp_rel = os.path.relpath(target_path)
 			
 			# make directories
-			logger.info('creating {}.'.format(tp_rel))
+			
+			# prevent the root directory logged twice
+			if sd_rel == sp_rel:
+				pass
+			elif bd_rel == tp_rel:
+				pass
+			else:
+				logger.log(log_info + 1, '{} -> {}.'.format(sp_rel, tp_rel))
 			
 			try:
 				os.makedirs(target_path)
 			except FileExistsError:
-				logger.log(log_warning + 1, 'directory {} exists -- making anyway!'.format(os.path.relpath(target_path)))
+				logger.log(log_warning + 2, 'directory "{}" exists -- making anyway!'.format(os.path.relpath(target_path)))
 				os.makedirs(target_path, exist_ok=True)
 			
 			# do the conversion
@@ -282,7 +292,7 @@ class Wizard():
 				# lop off the dot and make it all lowercase
 				original_ext = original_ext[1:].lower()
 				
-				self.generate_from_path(original_file, target_file, root=source_dir, to_html=True)
+				self.generate_from_path(original_file, target_file, root=source_dir, to_html=True, level=2)
 				
 				if type(callback).__name__ == 'function':
 					callback({"original_file": original_file,"target_file":target_file,"root":source_dir})

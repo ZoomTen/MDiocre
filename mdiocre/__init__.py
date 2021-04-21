@@ -26,3 +26,7 @@ for i in range(4):
 for i in range(4):
 	i += 1
 	logging.addLevelName(logging.ERROR+i, 'ERROR:{}'.format(i))
+
+# import mdiocre modules
+from .core import MDiocre, VariableManager
+from .wizard import Wizard

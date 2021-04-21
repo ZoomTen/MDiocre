@@ -1,26 +1,16 @@
 import os
 import re
 from distutils.util import convert_path
+from versioning import get_git_version
 
 try:
 	from setuptools import setup
 except ImportError:
 	from distutils.core import setup
 
-META_PATH = 'mdiocre/__meta__.py'
-
-def get_meta(meta_path, key):
-	meta_file = open(convert_path(meta_path)).read()
-	meta_match = re.search("^__{}__\s*=\s*['\"]([^'\"]*)['\"]".format(key), meta_file, re.M)
-	if meta_match:
-		return meta_match.group(1)
-	raise RuntimeError('Unable to find meta string.')
-
-version = get_meta(META_PATH, 'version')
-
 setup(
 	name='mdiocre',
-	version=version,
+	version=get_git_version(),
 	description='Static website generator',
 	license='MIT',
 	author='Zumi Daxuya',
@@ -45,6 +35,7 @@ setup(
 		'Programming Language :: Python',
 		'Programming Language :: Python :: 3',
 		'Programming Language :: Python :: 3.8',
+		'Programming Language :: Python :: 3.9',
 		'Topic :: Software Development :: Libraries :: Python Modules',
 	]
 )

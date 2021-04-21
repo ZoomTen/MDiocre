@@ -1,2 +1,4 @@
-__version__ = '3.2.0.dev1'
-__date__    = '2020-09-20'
+# these should be updated every release
+
+__version__ = "3.2.rc1"
+__date__ = "2021-04-21"

@@ -1,4 +1,6 @@
 recursive-include mdiocre *.py
 include setup.py
+include versioning.py
 include LICENSE
 include README.md
+include RELEASE-VERSION

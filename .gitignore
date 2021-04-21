@@ -3,3 +3,4 @@ doc/build
 mdiocre.egg-info/
 build
 dist
+RELEASE-VERSION

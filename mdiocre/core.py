@@ -231,7 +231,10 @@ class VariableManager():
 			file_ = os.path.abspath(value)
 			if os.path.isfile(file_):
 				with open(file_, "r") as f_:
-					return f_.read()
+					# using MDiocre to render the include, calling this
+					# in itself. epic
+					m = MDiocre(parser_name='html')
+					return m.render(f_.read(), self)
 			return ''
 		elif keyword == "using":
 			file_ = os.path.abspath(value)

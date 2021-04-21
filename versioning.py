@@ -24,7 +24,7 @@ def git2pep440(git_ver):
             version_string += f"+{distance}.{commit}"
         return version_string
     
-    return re.sub('v?([0-9]+)\.([0-9]+)(\.([0-9]+))?(\.((rc|dev)[0-9]+))?(-([0-9]+))?(-g([0-9a-fA-F]+))', _git2pep440, git_ver)
+    return re.sub('v?([0-9]+)\.([0-9]+)(\.([0-9]+))?(\.((rc|dev)[0-9]+))?(-([0-9]+))?(-g([0-9a-fA-F]+))?', _git2pep440, git_ver)
 
 
 def call_git_describe(abbrev):

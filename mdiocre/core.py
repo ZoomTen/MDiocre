@@ -2,6 +2,7 @@ from .utils import declare, remove_inner_outer_quotes
 import logging
 from .parsers import BaseParser, sub_func
 import re
+import os
 import datetime
 from importlib import import_module
 '''
@@ -11,14 +12,13 @@ Core MDiocre conversion class
 logger = logging.getLogger('mdiocre.core')
 
 RE_HTML_COMMENTS = re.compile(r'<!--:(.+?)-->')
-RE_MATH = re.compile(r'^\s*([-+]?)(\d+)(?:\s*([-+*\/])\s*((?:\s[-+])?\d+)\s*)+$')
 RE_ASSIGNMENT = re.compile(r'.+=.+')
-RE_CONCAT = re.compile(r'(\"[^\"]*\"|\'[^\']*\'|\w+),\s*|(\"[^\"]*\"|\'[^\']*\'|\w+)$')
+RE_KEYWORD = re.compile(r'.+:.+')
 RE_ESCAPE = re.compile(r'(\\)(.{1})')
 
 class MDiocre():
 	'''
-	Main class to process Markdown source files and render HTML files.
+	Main class to process source files and render HTML files.
 	
 	Args:
 	    parser (Optional): a BaseParser-derived object. If both
@@ -52,7 +52,7 @@ class MDiocre():
 		
 		Args:
 		    name (string): Parser name. Currently implemented:
-		        `markdown`, `html`, `rst`
+		        `markdown`, `html`, `rst`, `zim`
 		
 		Returns:
 		    None.
@@ -101,7 +101,6 @@ class MDiocre():
 		def render_sub_func(match):
 			return sub_func(match, variables)
 		
-		# TODO: implement the same parser as process
 		# template variables are processed separately since
 		# the content is already proecessed
 		converted = re.sub(RE_HTML_COMMENTS, render_sub_func, template)
@@ -186,6 +185,65 @@ class VariableManager():
 		except KeyError:
 			return ''
 	
+	def parse_keyword(self, query):
+		'''
+		Currently called from :meth:`function`, this implements a few commands,
+		or "keywords" that can be used to implement a little more modularity
+		in one's templates/contents.
+		
+		Operands are separated by the colon `:`, on the left hand side is the
+		keyword, on the right hand is the argument, assumed to be a string.
+		
+		The keyword is case-insensitive.
+		
+		They can be one of the following:
+		    * **Include** : Essentially, it literally includes a file into the template or content. It can be used to set global variables, include common banners, etc. Its argument is a file RELATIVE TO THE WORKING DIRECTORY THE SCRIPT IS CALLED IN!
+		          Example: ``Include: ../variables.html``
+		    * **Using** : Load a Python script. You can use it to define a few functions which can be useful with the function call feature during assignment, for example to dynamically convert a few strings of text.
+		          Example: ``Using: ../_functions.py``
+		
+		.. warning::
+		    The `using` keyword executes raw Python code, so it may pose a
+		    security risk! Use with caution, and double-check your source
+		    files!
+		
+		Args:
+		    query (string): Expects a string in the form of ``keyword : argument``.
+		
+		Returns:
+		    None (or SyntaxError).
+		'''
+		# type checking
+		declare(query, str)
+		if not (re.match(RE_KEYWORD, query)):
+			raise SyntaxError(f'<{query}> is neither a keyword nor an assign statement')
+		
+		keyword, value = query.split(':', 1)
+		keyword = keyword.strip().lower()
+		value = value.strip()
+		
+		# value quote
+		if value[0] == '"' or value[0] == "'":
+			value = remove_inner_outer_quotes(value)
+		
+		if keyword == "include":
+			# include a raw file
+			file_ = os.path.abspath(value)
+			if os.path.isfile(file_):
+				with open(file_, "r") as f_:
+					return f_.read()
+			return ''
+		elif keyword == "using":
+			file_ = os.path.abspath(value)
+			# TODO: -----YIKES------------------------
+			if os.path.isfile(file_):
+				with open(file_, "r") as f_:
+					exec(f_.read(), globals())
+			# ----------------------------------------
+			return ''
+		else:
+			raise SyntaxError(f'Supported keywords: include; using.')
+		
 	def assign(self, query):
 		'''
 		Assigns a variable to a value.
@@ -199,11 +257,20 @@ class VariableManager():
 		          Example query: ``My Variable = "Toast"``
 		    * **Concatenation** : if two or more variable names are specified, with a comma separating each.
 		          Example query: ``My Variable = Var 1, Var 2``
-		    * **Math expression** : if the value is in the form of a simple math expression e.g. `1 * 2 + 3`
-		          Example query: ``My Variable = 1 + 4 * 7 + 4 * 0``
 		    * **Value assignment** : if the value is a variable name. This is assumed to be the default. Will assign
 		      to an empty string if the variable is not found.
 		          Example query: ``My Variable = Something else``
+		    * **Function calls** : if a function is defined using the ``using``
+		      keyword, it may be used for dynamic data conversion and processing. Surrounded by parentheses,
+		      the word directly after it is the function name, followed by its arguments, surrounded by spaces.
+		      Like regular Python, strings need to be in quotes. Arguments may be names of variables that are
+		      already defined up to that point, they will be automatically substituted.
+		          Example query: ``RSSDate = (toRFC822 PubDate)``
+		
+		..warning::
+		    The function call feature executes raw Python code, so it may pose a
+		    security risk! Use with caution, and double-check your source
+		    files!
 		
 		Args:
 		    query (string): Expects a string in the form of ``variable = value``.
@@ -212,12 +279,11 @@ class VariableManager():
 		    None (or SyntaxError). If the variable is successfully assigned, its
                     value will be added to the object's ``variables`` dictionary.
 		'''
-		# TODO: split query = "BLAH = 'blah', dah" into variable = "BLAH ", value="'blah', dah"
-		
 		# type checking
 		declare(query, str)
 		if not (re.match(RE_ASSIGNMENT, query)):
-			raise SyntaxError('<{}> is not an assign statement'.format(query))
+			# if string matches " Something : Something else " do that instead
+			return self.parse_keyword(query)
 		
 		# query expected to be "variable = value"
 		ident, value = query.split('=', 1)
@@ -226,46 +292,53 @@ class VariableManager():
 		
 		# check valid identifier
 		if ident in self.reserved_variable_names:
-			print('assignment <{}>: variable name "{}" cannot be used!'.format(query, ident))
+			raise SyntaxError(f'assignment <{query}>: variable name "{ident}" cannot be used!')
 		
-		# do some maths
-		if re.match(RE_MATH, value):
-			# we don't yet accept parentheses
-			p = re.match(RE_MATH, value)
-			
-			# yiiiiiiiiiiiiikes
-			value = str(eval(value))
-		# if not, assume concat
-		else:
-			concat_vars = []
-			
-			concat_tokens = re.findall(RE_CONCAT, value)
-			concat_tokens = list(map(lambda tok: tok[0] or tok[1], concat_tokens))
-			
-			# add each token to concat_vars
-			for token in concat_tokens:
-				token = token.strip()
-				concat_vars.append(token)
-			
-			# start with a blank value
-			value = ''
-			for var in concat_vars:
-				# append each token according to the order
-				# they appear
-				if var[0] == '"' or var[0] == "'":
-					value += remove_inner_outer_quotes(var)
-					
-					# render all escaped characters
-					def escape(match):
-						return match.groups()[1]
-					
-					value = re.sub(RE_ESCAPE, escape, value)
-				else:
-					try:
-						value += self.variables[var]
-					except KeyError:
-						value += ''
+		concat_tokens = value.split(",")
+		concat_tokens = [x.strip() for x in concat_tokens]
+		
+		
+		# start with a blank value
+		value = ''
+		for var in concat_tokens:
+			# append each token according to the order
+			# they appear
+			if var[0] == '"' or var[0] == "'":
+				# token is a string
+				value += remove_inner_outer_quotes(var)
+				
+				# render all escaped characters
+				def escape(match):
+					return match.groups()[1]
+				
+				value = re.sub(RE_ESCAPE, escape, value)
+			elif var[0] == "(":
+				# token is a function call
+				if var[-1] != ")":
+					raise SyntaxError(f'Unmatched ( in assignment of {ident}')
+				fn_tokens = [x.strip() for x in var[1:-1].split(" ")]
+				
+				for i in range(1, len(fn_tokens)):
+					# transform arguments into variable contents
+					if fn_tokens[i] in self.variables:
+						escaped_var = self.variables[fn_tokens[i]].replace('"','\\"').replace("'","\\'")
+						fn_tokens[i] = f"'{escaped_var}'"
+				
+				print(fn_tokens)
+				
+				# TODO: -----YIKES------------------------
+				loc = {}
+				exec(f"__retval = {fn_tokens[0]}({','.join(fn_tokens[1:])})", globals(), loc)
+				value += (loc['__retval'])
+				# ----------------------------------------
+			else:
+				try:
+					value += self.variables[var]
+				except KeyError:
+					value += ''
 		
 		self.variables[ident] = value
+		
+		return ''
 
 

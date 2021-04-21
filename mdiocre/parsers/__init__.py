@@ -16,11 +16,11 @@ def sub_func(match, v):
 
 	try:
 		# variable = value
-		v.assign(statement)
-		return ''
-	except SyntaxError:
+		return v.assign(statement)
+	except SyntaxError as e:
 		# if it isn't an assign statement,
 		# get the variable name instead
+		#print(e)
 		return v.get(statement)
 
 class BaseParser():

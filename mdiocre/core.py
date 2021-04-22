@@ -16,6 +16,33 @@ RE_ASSIGNMENT = re.compile(r'.+=.+')
 RE_KEYWORD = re.compile(r'.+:.+')
 RE_ESCAPE = re.compile(r'(\\)(.{1})')
 
+# This stupid complicated RE is necessary to enable reading commas in variables
+RE_CONCAT = re.compile(
+# Case 1
+	r'('+	# Start capture group
+		r'\"[^\"]*\"'+ # double-quoted strings
+		r'|'+          # or
+		r'\'[^\']*\''+ # single quoted strings
+		r'|'+          # or
+		r'\w+'+        # word
+		r'|'+          # or
+		r'\(.+\)'+     # function
+	r')'+	# End capture group
+	r',\s*'+       # Concat operator
+	r'|'+          # Or
+# Case 2
+	r'('+	# Start capture group
+		r'\"[^\"]*\"'+ # double-quoted strings
+		r'|'+          # or
+		r'\'[^\']*\''+ # single quoted strings
+		r'|'           # or
+		r'\w+'+        # word
+		r'|'+          # or
+		r'\(.+\)'+     # function
+	r')'+	# End capture group
+	r'$'	# EOL
+)
+
 class MDiocre():
 	'''
 	Main class to process source files and render HTML files.
@@ -297,9 +324,9 @@ class VariableManager():
 		if ident in self.reserved_variable_names:
 			raise SyntaxError(f'assignment <{query}>: variable name "{ident}" cannot be used!')
 		
-		concat_tokens = value.split(",")
+		concat_tokens = re.findall(RE_CONCAT, value)
+		concat_tokens = list(map(lambda tok: tok[0] or tok[1], concat_tokens))
 		concat_tokens = [x.strip() for x in concat_tokens]
-		
 		
 		# start with a blank value
 		value = ''

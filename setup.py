@@ -18,7 +18,7 @@ setup(
 	url='https://github.com/ZoomTen/MDiocre',
 	packages=['mdiocre', 'mdiocre.parsers', 'mdiocre.interface'],
 	keywords=['converter', 'generator', 'markdown', 'html', 'static'],
-	install_requires=['markdown'],
+	install_requires=['markdown', 'py-gfm'],
 	entry_points={
 		'console_scripts':
 			[

@@ -22,8 +22,7 @@ setup(
 	entry_points={
 		'console_scripts':
 			[
-				'mdiocre = mdiocre.interface.cli:cli',
-				'mdiocre-gui = mdiocre.interface.gui:gui'
+				'mdiocre = mdiocre.interface.cli:cli'
 			]
 	},
 	classifiers=[

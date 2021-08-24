@@ -3,21 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-MDiocre Documentation
-=====================
+MDiocre API Documentation
+=========================
 
-:doc:`Changelog <changelog>`
-
-Users
------
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   user/index
-
-Developers
-----------
-.. toctree::
-   :maxdepth: 2
-
-   api/index
+   api/core
+   api/parsers
+   api/util
+   api/wizard

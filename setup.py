@@ -15,7 +15,7 @@ setup(
 	license='MIT',
 	author='Zumi Daxuya',
 	author_email='daxuya.zumi+mdiocre@protonmail.com',
-	url='https://github.com/ZoomTen/MDiocre',
+	url='https://zumi.neocities.org/stuff/mdiocre',
 	packages=['mdiocre', 'mdiocre.parsers', 'mdiocre.interface'],
 	keywords=['converter', 'generator', 'markdown', 'html', 'static'],
 	install_requires=['markdown', 'py-gfm'],

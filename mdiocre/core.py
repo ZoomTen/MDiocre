@@ -97,6 +97,7 @@ class MDiocre():
 			module = import_module(module_name, 'mdiocre')
 		except Exception as e:
 			logger.error("{}: error occured: {}".format(name, e))
+			raise e
 		else:
 			module_class = getattr(module,class_name)
 			if not issubclass(module_class, BaseParser):
@@ -353,8 +354,6 @@ class VariableManager():
 					if fn_tokens[i] in self.variables:
 						escaped_var = self.variables[fn_tokens[i]].replace('"','\\"').replace("'","\\'")
 						fn_tokens[i] = f"'{escaped_var}'"
-				
-				print(fn_tokens)
 				
 				# TODO: -----YIKES------------------------
 				loc = {}

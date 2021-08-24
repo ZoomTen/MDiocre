@@ -173,29 +173,35 @@ class Wizard():
 		has_file_originally = os.path.exists(built_file)
 		
 		if source_ext in self.converters:
-			self.m.switch_parser(self.converters[source_ext])
-			
-			with open(source_file, 'r') as orig:
-				orig_string = orig.read()
-			
-			conv = self.generate_from_string(orig_string, root)
-			
-			if conv != '':
-				if to_html:
-					built_name, built_ext = os.path.splitext(built_file)
-					built_file = os.path.extsep.join([built_name, 'html'])
-					
-					# update with the html name
-					has_file_originally = os.path.exists(built_file)
-					
-					built_dir, built_filename = os.path.split(built_file)
-				# if properly converted, write the file
-				logger.log(log_ok + level, '{} is a MDiocre file, writing {}.'.format(source_filename, built_filename))
-				with open(built_file, 'w') as rendered:
-					rendered.write(conv)
-			else:
-				# if not, don't convert - just perform a copy
-				logger.log(log_warning + level, '{} is NOT a MDiocre file, copying instead.'.format(source_filename, built_filename))
+			try:
+				self.m.switch_parser(self.converters[source_ext])
+				with open(source_file, 'r') as orig:
+					orig_string = orig.read()
+				
+				conv = self.generate_from_string(orig_string, root)
+				
+				if conv != '':
+					if to_html:
+						built_name, built_ext = os.path.splitext(built_file)
+						built_file = os.path.extsep.join([built_name, 'html'])
+						
+						# update with the html name
+						has_file_originally = os.path.exists(built_file)
+						
+						built_dir, built_filename = os.path.split(built_file)
+					# if properly converted, write the file
+					logger.log(log_ok + level, '{} is a MDiocre file, writing {}.'.format(source_filename, built_filename))
+					with open(built_file, 'w') as rendered:
+						rendered.write(conv)
+				else:
+					# if not, don't convert - just perform a copy
+					logger.log(log_warning + level, '{} is NOT a MDiocre file, copying instead.'.format(source_filename, built_filename))
+					shutil.copyfile(
+						source_file,
+						built_file
+						)
+			except Exception as e:
+				logger.log(log_error + level, "{}: an error occured, copying file instead...".format(source_filename))
 				shutil.copyfile(
 					source_file,
 					built_file

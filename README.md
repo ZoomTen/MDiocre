@@ -2,13 +2,17 @@
 
 ![MDiocre](logo.svg)
 
-A very simple static website generator tool powered by Python, Markdown (but can be extended to other markup)
+A very simple static website generator tool powered by Python. It primarily converts Markdown files and combines it with an HTML template, but can be extended to other markup.
 
 ## Requirements
 
-* Python 3 (python-markdown, shutil)
+* Python 3 (`python-markdown` + `py-gfm`)
 
-If you want to build the documentation, you will have to install Sphinx as well.
+## Other Requirements
+
+**ReStructuredText** (RST) support requires `docutils` to be installed.
+
+If you want to build the **documentation**, you will have to install Sphinx as well.
 
 ## What sets it apart from other tools?
 

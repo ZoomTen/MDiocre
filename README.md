@@ -20,9 +20,11 @@ It's terrible and it doesn't have a profitable and pragmatic usecase in mind, bu
 
 ## How do I make a site with this?
 
-1. After cloning/downloading this repo (extracting it to a folder called `MDiocre`), create a work folder adjacent to that folder. Let's call it `work`.
+1. Install `mdiocre` by using the command: `python3 -m pip install mdiocre`.
 
-2. Make a file called `template.html` inside that folder with these contents:
+2. Create a work folder. Let's call it `work`.
+
+3. Make a file called `template.html` inside that folder with these contents:
    
    ```
    <html>
@@ -31,19 +33,19 @@ It's terrible and it doesn't have a profitable and pragmatic usecase in mind, bu
    </html>
    ```
 
-3. Create a folder called `src`, and make a file inside of it called `index.md`, and write anything on it.
+4. Create a folder called `src`, and make a file inside of it called `index.md`, and write anything on it.
 
-4. After your content (or before, it doesn't matter), add: `<!--:mdiocre-template="../template.html"-->`
+5. After your content (or before, it doesn't matter), add: `<!--:mdiocre-template="../template.html"-->`
 
-5. Go back a level to your `work` folder. Assuming Python is present in your PATH (environment variable), create a new text document containing:
+6. Go back a level to your `work` folder. Assuming Python is present in your PATH (environment variable), create a new text document containing:
    
    ```
-   python3 ../MDiocre/mdiocre.py src build
+   python3 -m mdiocre.interface.cli src build
    ```
    
    Save it inside the folder as a .bat if you're on Windows, or as a .sh if you're on Mac, Linux, or other Unix-like systems. Double click or execute it.
 
-6. Check the `build` folder.
+7. Check the `build` folder.
 
 ## Variables
 

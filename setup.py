@@ -3,6 +3,10 @@ import re
 from distutils.util import convert_path
 from versioning import get_git_version
 
+def readme():
+	with open('README.md', 'r', encoding='utf-8') as rf:
+		return rf.read()
+
 try:
 	from setuptools import setup
 except ImportError:
@@ -12,6 +16,8 @@ setup(
 	name='mdiocre',
 	version=get_git_version(),
 	description='Static website generator',
+	long_description=readme(),
+	long_description_content_type='text/markdown',
 	license='MIT',
 	author='Zumi Daxuya',
 	author_email='daxuya.zumi+mdiocre@protonmail.com',

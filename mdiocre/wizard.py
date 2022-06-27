@@ -24,7 +24,9 @@ class Wizard():
 	              'rst'  : 'rst',
 	              'html' : 'html',
 	              'htm'  : 'html',
-	              'zimtxt'  : 'zim'
+	              'zimtxt'  : 'zim',
+	              'gem'  : 'gem',
+	              'gmi'  : 'gem',
 	              }
 
 	def __init__(self):

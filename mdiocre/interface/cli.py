@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-CLI_VERSION = '1.0.0.dev1'
+CLI_VERSION = '1.0.0'
 
 from argparse import ArgumentParser
 from mdiocre.__meta__ import __version__ as MD_VERSION

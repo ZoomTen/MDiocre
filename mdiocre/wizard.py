@@ -202,6 +202,7 @@ class Wizard():
 						)
 			except Exception as e:
 				logger.log(log_error + level, "{}: an error occured, copying file instead...".format(source_filename))
+				logger.log(log_error + level + 1, "{}".format(e))
 				shutil.copyfile(
 					source_file,
 					built_file

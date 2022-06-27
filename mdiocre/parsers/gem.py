@@ -15,10 +15,10 @@ class GemParser(BaseParser):
 		MARKUP = markup.split('\n')
 		P_ADD_RE         = re.compile(r'^(?!#|\*|>|```|=>)(.+)$')
 		HEADINGS_RE      = re.compile(r'^(#{1,6})\s+(.+)$') # spec says mandatory space chara
-		LINKS_RE         = re.compile(r'^=>\s*(\w+://[^\s]+)(\s+(.+$))?')
+		LINKS_RE         = re.compile(r'^=>\s*(\w+:?/?/?[^\s]+)(\s+(.+$))?')
 		PREFORMATTED_RE  = re.compile(r'^```(.+)$')
 		ULIST_RE         = re.compile(r'^\*\s+(.+)$')
-		LINKS_INSIDE     = re.compile(r'\(=>\s*(\w+://[^\s]+)(\s+(.+?))?\)') 
+		LINKS_INSIDE     = re.compile(r'\(=>\s*(\w+:?/?/?[^\s]+)(\s+(.+?))?\)') 
 		BLOCKQUOTE_RE    = re.compile(r'^>\s+(.+)$')
 		
 		output_markup = []

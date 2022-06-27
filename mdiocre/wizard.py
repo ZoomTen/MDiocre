@@ -181,6 +181,7 @@ class Wizard():
 					orig_string = orig.read()
 				
 				conv = self.generate_from_string(orig_string, root)
+				logger.log(log_ok + level, 'base: {}'.format(root))
 				
 				if conv != '':
 					if to_html:
@@ -203,8 +204,10 @@ class Wizard():
 						built_file
 						)
 			except Exception as e:
+				import traceback
 				logger.log(log_error + level, "{}: an error occured, copying file instead...".format(source_filename))
 				logger.log(log_error + level + 1, "{}".format(e))
+				logger.log(log_error + level + 1, "{}".format(traceback.format_exc()))
 				shutil.copyfile(
 					source_file,
 					built_file

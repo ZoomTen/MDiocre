@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'MDiocre'
-copyright = '2021 Zumi'
+copyright = '2022 Zumi'
 author = 'Zumi Daxuya'
 
 # The full version, including alpha/beta/rc tags
-release = '3.3.dev2'
+release = '3.5'
 
 
 # -- General configuration ---------------------------------------------------

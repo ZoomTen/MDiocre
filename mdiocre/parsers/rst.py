@@ -53,6 +53,8 @@ class RstParser(BaseParser):
 	RST role, "mdiocre".
 	'''
 	
+	FILETYPES = ["rst"]
+	
 	# this doesn't match the roles matcher
 	RE_COMMENTS = re.compile(r':mdiocre:`(.*?)`')
 	

@@ -18,6 +18,9 @@ class ZimParser(BaseParser):
 	'''
 	Zim wiki markup parser.
 	'''
+	
+	FILETYPES = ["zim"]
+	
 	RE_COMMENTS = re.compile(r'\[mdiocre:(.+?)\]')
 	
 	def convert_markup(self, markup):

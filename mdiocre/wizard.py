@@ -4,8 +4,11 @@ import re
 import logging
 import traceback
 import subprocess
+import pkgutil
+import importlib
 from .utils import declare
 from .core import MDiocre
+from .parsers import BaseParser
 
 '''
 Automatic page generation tools that require manipulating the file system
@@ -22,28 +25,81 @@ log_error   = logging.ERROR
 
 class Wizard():
 	# TODO: move this list to core.py, have all the converters register to core
-	converters = {'md'   : 'markdown',
-	              'rst'  : 'rst',
-	              'html' : 'html',
-	              'htm'  : 'html',
-	              'zimtxt'  : 'zim',
-	              'gem'  : 'gem',
-	              'gmi'  : 'gem',
-	              }
+	converters = {}
 
 	def __init__(self):
 		self.m = MDiocre()
 	
-	def register_converter(self, file_extension, parser_name):
+	def reregister_converters(self):
 		'''
-		Registers a parser with a file extension.
-		'''
-		# type checking
-		declare(file_extension, str)
-		declare(parser_name, str)
+		Resets the converters list and reloads it.
 		
-		self.converter[file_extension] = parser_name
-		print('.{} = {}'.format(file_extension, parser_name))
+		Args:
+		    None.
+		
+		Returns:
+		    None.
+		'''
+		self.converters = {}
+		register_converters(self)
+	
+	def register_converters(self):
+		'''
+		Registers all available parsers.
+		
+		Args:
+		    None.
+			
+		Returns:
+		    None.
+		'''
+		if len(self.converters) != 0:
+			return
+		
+		def find_parsers(converter_list, search_locations, module_name):
+			global logger
+			for finder_, parser_file, ispkg in pkgutil.iter_modules(search_locations):
+				# "import mdiocre_mymodule.parsers.(fmt)*"
+				module = importlib.import_module(
+					".parsers.{}".format(parser_file),
+					module_name
+				)
+				try:
+					# is FmtParser in <fmt> module?
+					parser_class = getattr(
+						module, '{}Parser'.format(parser_file.capitalize())
+					)
+					# is FmtParser
+					if not issubclass(parser_class, BaseParser):
+						raise ValueError('{}Parser is invalid (does not inherit BaseParser)'.format(parser_file.capitalize()))
+					for filetype in parser_class.FILETYPES:
+						converter_list[filetype] = parser_class
+				except AttributeError as e:
+					logger.log(log_error,
+						"{}: can't find a {}Parser class inside parser module: {}".format(
+							module_name,parser_file.capitalize(), parser_file
+						)
+					)
+				except ValueError as e:
+					logger.log(log_error,
+						"{}: {}".format(module_name, e)
+					)
+				except Exception as e:
+					logger.log(log_error,
+						"{}: {}".format(
+							module_name, traceback.format_exc()
+						)
+					)
+		
+		# first, load parsers from internal stuff
+		find_parsers(self.converters, [os.path.join(os.path.dirname(__file__), "parsers")], "mdiocre")
+		
+		# then, find parsers from every plugin
+		for finder, name, ispkg in pkgutil.iter_modules():
+			if name.startswith("mdiocre_"):
+				module_parser_spec = importlib.util.find_spec("{}.parsers".format(name))
+				if module_parser_spec:
+					find_parsers(self.converters, module_parser_spec.submodule_search_locations, name)
 	
 	def vars_directly_from_file(self, source_file):
 		'''
@@ -201,7 +257,6 @@ class Wizard():
 						)
 			except Exception as e:
 				logger.log(log_error + level, "{}: an error occured, copying file instead...".format(source_filename))
-				logger.log(log_error + level + 1, "{}".format(e))
 				logger.log(log_error + level + 1, "{}".format(traceback.format_exc()))
 				shutil.copyfile(
 					source_file,

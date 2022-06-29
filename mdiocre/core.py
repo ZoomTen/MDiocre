@@ -5,6 +5,7 @@ import re
 import os
 import datetime
 from importlib import import_module
+from importlib.util import find_spec
 '''
 Core MDiocre conversion class
 '''
@@ -71,21 +72,35 @@ class MDiocre():
 	
 	def switch_parser(self, name):
 		'''
-		Switch parsers by using an identifier. To implement a
-		new parser, it must be a class with inherited from
+		Switch parsers by using an identifier or an instance of a class
+		derived from BaseParser.
+		
+		To implement a new parser, it must be a class with inherited from
 		:class:`BaseParser`, Its name and file name must also
 		match, e.g. a parser with the `html` identifier must
 		be in `html.py` and have the class name of `HtmlParser`.
 		
 		Args:
-		    name (string): Parser name. Currently implemented:
-		        `markdown`, `html`, `rst`, `zim`
+		    name (string | :class:`BaseParser` ): Parser name or type.
+		        If passed as a string, it will only take the following
+		        values:
+		        `markdown`, `html`, `rst`, `zim`, `gem`
+		        
+		        As a type, this function accepts it as long as it contains
+		        a `to_variables`.
+		
+		.. warning::
+		    Passing a `string` to `switch_parser` is deprecated as of
+		    version 3.5. It will be removed in a future release.
 		
 		Returns:
 		    None.
 		'''
-		# type checking
-		declare(name, str)
+		
+		if isinstance(name, type):
+			if issubclass(name, BaseParser):
+				self.parser = name()
+				return
 		
 		# specifications for names
 		# e.g. "markdown" -> MarkdownParser in parsers/markdown.py
@@ -93,9 +108,17 @@ class MDiocre():
 		module_name = '.parsers.{}'.format(name.lower())
 		class_name  = '{}Parser'.format(name.capitalize())
 		# Switch parser
-		try:
+		
+		if find_spec(module_name, 'mdiocre'):
 			module = import_module(module_name, 'mdiocre')
-		except Exception as e:
+		else:
+			logger.error("{}: error occured: {}".format(name, e))
+			raise Exception("Can't find any suitable modules")
+		
+		try:
+			# internal-only
+			module = import_module(module_name, 'mdiocre')
+		except ModuleNotFoundError as e:
 			logger.error("{}: error occured: {}".format(name, e))
 			raise e
 		else:

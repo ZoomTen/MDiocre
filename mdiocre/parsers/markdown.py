@@ -11,6 +11,8 @@ class MarkdownParser(BaseParser):
 	with ``<!--:``.
 	'''
 	
+	FILETYPES = ["md"]
+	
 	RE_COMMENTS = re.compile(r'<!--:(.+?)-->')
 	
 	def to_variables(self, markdown, v, ignore_content=False):

@@ -7,6 +7,8 @@ class GemParser(BaseParser):
 	'''
 	Gemtext parser. Comments are parsed the same way as Zim does
 	'''
+	
+	FILETYPES = ["gmi", "gem"]
 
 	RE_COMMENTS = re.compile(r'\[mdiocre:(.+?)\]')
 	

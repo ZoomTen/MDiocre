@@ -77,6 +77,7 @@ def cli():
 		print(base_str)
 
 	# run the wizard
+	w.register_converters()
 	w.generate_from_directory(vars(args))
 	
 	print()

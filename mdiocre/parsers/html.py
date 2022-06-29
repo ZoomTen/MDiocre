@@ -6,6 +6,8 @@ class HtmlParser(BaseParser):
 	In HTML, MDiocre commands are HTML comments prefixed
 	with ``<!--:``.
 	'''
+	
+	FILETYPES = ["html", "htm"]
 
 	RE_COMMENTS = re.compile(r'<!--:(.+?)-->')
 	

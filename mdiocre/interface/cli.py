@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-CLI_VERSION = '1.0.0'
+CLI_VERSION = '1.0.1'
 
 from argparse import ArgumentParser
 from mdiocre.__meta__ import __version__ as MD_VERSION
@@ -41,6 +41,9 @@ class MDiocreHandler(logging.Handler):
 					print('\033[0m', end='')
 			
 			sep = '... '
+			
+			if not color_enable:
+				sep = '\n[{}] '.format(record.levelname.split(':')[0])
 			
 			print(''.join(['    '*int(record.levelno % 5), sep, record.msg]), end='')
 			

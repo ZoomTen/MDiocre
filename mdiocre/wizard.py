@@ -226,11 +226,18 @@ class Wizard():
 						['tsc', '--strict', '--outFile', built_file, source_file],
 						stderr = subprocess.STDOUT
 					)
+				
 				except FileNotFoundError as e:
 					logger.log(log_error + level, "can't find tsc on your system")
+				
 				except subprocess.CalledProcessError as e:
 					logger.log(log_error + level, "compilation failed with code {}".format(e.returncode))
 					logger.log(log_error + level + 1, "{}".format(e.output.decode("utf-8")))
+					
+					# delete the compiled file just in case tsc compiles it anyway
+					if os.path.isfile(built_file):
+						os.remove(built_file)
+				
 				else:
 					logger.log(log_ok + level, '{} compiled successfully.'.format(built_filename))
 			else:

@@ -100,13 +100,7 @@ class Wizard():
 		
 		variables = self.m.process(md_string, ignore_content=True)
 		
-		md_template_string = variables.get('mdiocre-template')
-		
-		if md_template_string != '':
-			# XXX: templates are only HTML
-			# if md_template_string.lower()[-5:] == '.html':
-				return True
-		return False
+		return (variables.get('mdiocre-template') != '')
 	
 	def generate_from_string(self, md_string, root):
 		'''

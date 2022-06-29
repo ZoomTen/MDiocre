@@ -1,8 +1,10 @@
 import shutil
 import os
 import re
-from .utils import declare
 import logging
+import traceback
+import subprocess
+from .utils import declare
 from .core import MDiocre
 
 '''
@@ -204,7 +206,6 @@ class Wizard():
 						built_file
 						)
 			except Exception as e:
-				import traceback
 				logger.log(log_error + level, "{}: an error occured, copying file instead...".format(source_filename))
 				logger.log(log_error + level + 1, "{}".format(e))
 				logger.log(log_error + level + 1, "{}".format(traceback.format_exc()))
@@ -213,11 +214,31 @@ class Wizard():
 					built_file
 					)
 		else:
-			logger.log(log_info + level, 'copying {}'.format(source_filename))
-			shutil.copyfile(
-				source_file,
-				built_file
-				)
+			if source_ext in ['ts']: # is typescript file?
+				built_name, built_ext = os.path.splitext(built_file)
+				built_file = os.path.extsep.join([built_name, 'js'])
+				
+				# try to compile it with `tsc`
+				logger.log(log_info + level, 'compiling {} with tsc'.format(source_filename))
+				
+				try:
+					ts2js_result = subprocess.check_output(
+						['tsc', '--strict', '--outFile', built_file, source_file],
+						stderr = subprocess.STDOUT
+					)
+				except FileNotFoundError as e:
+					logger.log(log_error + level, "can't find tsc on your system")
+				except subprocess.CalledProcessError as e:
+					logger.log(log_error + level, "compilation failed with code {}".format(e.returncode))
+					logger.log(log_error + level + 1, "{}".format(e.output.decode("utf-8")))
+				else:
+					logger.log(log_ok + level, '{} compiled successfully.'.format(built_filename))
+			else:
+				logger.log(log_info + level, 'copying {}'.format(source_filename))
+				shutil.copyfile(
+					source_file,
+					built_file
+					)
 		
 		if has_file_originally:
 			logger.log(log_serious + level,'overwriting {}!'.format(built_filename))

@@ -72,7 +72,7 @@ class MDiocre():
 	
 	def switch_parser(self, name):
 		'''
-		Switch parsers by using an identifier or an instance of a class
+		Switch parsers by using an identifier or a class (not an instance!)
 		derived from BaseParser.
 		
 		To implement a new parser, it must be a class with inherited from

@@ -183,7 +183,7 @@ class Wizard():
 					orig_string = orig.read()
 				
 				conv = self.generate_from_string(orig_string, root)
-				logger.log(log_ok + level, 'base: {}'.format(root))
+				logger.log(log_info + level, '{}\'s base dir: {}'.format(source_filename, root))
 				
 				if conv != '':
 					if to_html:

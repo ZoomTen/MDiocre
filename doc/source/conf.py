@@ -22,7 +22,7 @@ copyright = '2022 Zumi'
 author = 'Zumi Daxuya'
 
 # The full version, including alpha/beta/rc tags
-release = '3.5'
+release = '3.5.1'
 
 
 # -- General configuration ---------------------------------------------------

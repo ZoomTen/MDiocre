@@ -19,7 +19,7 @@ class ZimParser(BaseParser):
 	Zim wiki markup parser.
 	'''
 	
-	FILETYPES = ["zim"]
+	FILETYPES = ["zim", "zimtxt"]
 	
 	RE_COMMENTS = re.compile(r'\[mdiocre:(.+?)\]')
 	

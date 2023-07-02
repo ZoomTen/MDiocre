@@ -278,7 +278,7 @@ class Wizard():
 				
 				except FileNotFoundError as e:
 					logger.log(log_error + level, "can't find tsc on your system, copying instead")
-					built_file = os.path.extsep.join([built_name, built_ext])
+					built_file = os.path.extsep.join([built_name, 'ts'])
 					shutil.copyfile(
 						source_file,
 						built_file

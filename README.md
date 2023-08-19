@@ -1,4 +1,4 @@
-# MDiocre
+# MDiocre - an Amazing Project
 
 ![MDiocre](logo.svg)
 
@@ -80,3 +80,6 @@ If `hello` contains `abc` then `lemons` will contain `abcabc`. However, if you a
 ```
 
 `lemons` will contain `abc abc`!
+
+## errors
+if there are error in this software plz report to me at https://github.com/ZoomTen/MDiocre/issues thanks!!
